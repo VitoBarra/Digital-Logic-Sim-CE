@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Interaction.Signal;
 using UnityEngine;
 
@@ -100,11 +101,10 @@ public class ChipInterfaceEditor : MonoBehaviour
     public ChipSignal LoadSignal(ChipSignal signal, float y, int groupID)
     {
         var signalInteraction = SignalsByID.GetValueOrDefault(groupID);
-        if (signalInteraction  is not null) return signalInteraction.AddOneSignal().ChipSignal;
-        
+        if (signalInteraction is not null) return signalInteraction.AddOneSignal().ChipSignal;
+
         ChipSignal chip = CreateSignalInteractionGroup(y, 1, signal.wireType, false).Signals.ChipSignals[0];
         return chip;
-
     }
 
 
@@ -154,7 +154,8 @@ public class ChipInterfaceEditor : MonoBehaviour
         OnChipsAddedOrDeleted?.Invoke();
     }
 
-    private SignalInteraction CreateSignalInteractionGroup(float yPos, int groupSize, Pin.WireType wireType = Pin.WireType.Simple,
+    private SignalInteraction CreateSignalInteractionGroup(float yPos, int groupSize,
+        Pin.WireType wireType = Pin.WireType.Simple,
         bool focusRequired = true)
     {
         var Interactable = SignalBuilder.Build(yPos, groupSize, wireType, focusRequired);
@@ -183,10 +184,8 @@ public class ChipInterfaceEditor : MonoBehaviour
     public List<ChipSignal> GetAllSignals()
     {
         var res = new List<ChipSignal>();
-        foreach (var e in SignalsByID.Values)
-        {
+        foreach (var e in SignalsByID.Values.Where(e => e != null))
             res.AddRange(e.Signals.ChipSignals);
-        }
 
         return res;
     }

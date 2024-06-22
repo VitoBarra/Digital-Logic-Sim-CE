@@ -46,7 +46,7 @@ namespace Core
             // Add and set up the custom chip component
             var chip = gameObject.AddComponent<T>();
 
-            chip.chipName = chipName;
+            chip.Name = chipName;
 
             // Create pins and set set package size
             SpawnPins(chip);
@@ -128,7 +128,7 @@ namespace Core
         {
             var chip = packageDisplay.gameObject.AddComponent<CustomChip>();
 
-            chip.chipName = chipInfo.name;
+            chip.Name = chipInfo.name;
             chip.FolderIndex = chipInfo.FolderIndex;
             chip.PackageGraphicData = new PackageGraphicData()
             {
@@ -170,14 +170,13 @@ namespace Core
         public SpawnableChip TryPackageAndReplaceChip(List<SpawnableChip> SpawnableCustomChips ,string original)
         {
             ChipPackageDisplay oldPackageDisplay =GetComponentsInChildren<ChipPackageDisplay>(true).First( cp => cp.name == original);
-            if (oldPackageDisplay != null)
-            {
+            if (oldPackageDisplay is not null)
                 Destroy(oldPackageDisplay.gameObject);
-            }
+
 
             var customChip = GenerateCustomPackageAndChip();
 
-            int index = SpawnableCustomChips.FindIndex(c => c.chipName == original);
+            int index = SpawnableCustomChips.FindIndex(c => c.Name == original);
 
             if (index < 0) return customChip;
 

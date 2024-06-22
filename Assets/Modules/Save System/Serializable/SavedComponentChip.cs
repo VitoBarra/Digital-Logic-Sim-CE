@@ -20,7 +20,7 @@ public class SavedComponentChip {
 	}
 
 	public SavedComponentChip (ChipInstanceHolder chipInstanceHolder, Chip chip) {
-		chipName = chip.chipName;
+		chipName = chip.Name;
 
         posX = chip.transform.position.x ;
         posY = chip.transform.position.y ;

@@ -14,25 +14,9 @@ public class ChipEditor : MonoBehaviour
     public ChipInteraction chipInteraction;
     public PinAndWireInteraction pinAndWireInteraction;
 
-    public List<InputSignal> InputSignals
-    {
-        get
-        {
-            var res =inputsEditor.GetAllSignals().Cast<InputSignal>().ToList();
-            res.RemoveAll(x=> x is null);
-            return res;
-        }
-    }
+    public List<InputSignal> InputSignals => inputsEditor.GetAllSignals().Cast<InputSignal>().ToList();
+    public List<OutputSignal> OutputSignals=>outputsEditor.GetAllSignals().Cast<OutputSignal>().ToList();
 
-    public List<OutputSignal> OutputSignals
-    {
-        get
-        {
-            var res = outputsEditor.GetAllSignals().Cast<OutputSignal>().ToList();
-            res.RemoveAll(x => x is null);
-            return res;
-        }
-    }
 
 
 

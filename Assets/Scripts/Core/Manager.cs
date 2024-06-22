@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Core;
 using Modules.Save_System.Save;
-using UnityEditor.UI;
 using UnityEngine;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
@@ -93,15 +92,15 @@ public class Manager : MonoBehaviour
     public Chip GetChipPrefab(Chip chip)
     {
         foreach (Chip prefab in SpawnableBuiltinChips)
-            if (chip.chipName == prefab.chipName)
+            if (chip.Name == prefab.Name)
                 return prefab;
 
-        return SpawnableCustomChips.FirstOrDefault(prefab => chip.chipName == prefab.chipName);
+        return SpawnableCustomChips.FirstOrDefault(prefab => chip.Name == prefab.Name);
     }
 
     public static Chip GetChipByName(string name)
     {
-        return instance.SpawnableCustomChips.FirstOrDefault(chip => name == chip.chipName);
+        return instance.SpawnableCustomChips.FirstOrDefault(chip => name == chip.Name);
     }
 
     public Chip LoadCustomChip(ChipInstanceHolder instanceHolder)
@@ -124,7 +123,7 @@ public class Manager : MonoBehaviour
     {
         ClearEditor();
         ChipEditorMode = ChipEditorMode.Update;
-        ChipInstanceHolder chipInstanceHolder = ChipLoader.GetChipInstanceData(chip, activeEditor);
+        ChipInstanceHolder chipInstanceHolder = ChipLoader.GetChipInstanceData(chip.Name, activeEditor);
         ActiveEditor.CurrentChip = chipInstanceHolder.Info;
 
         menuManager.SetEditingChipName(chipInstanceHolder.Info.name);
@@ -152,12 +151,12 @@ public class Manager : MonoBehaviour
 
     internal void DeleteChip(string nameBeforeChanging)
     {
-        SpawnableCustomChips = SpawnableCustomChips.Where(x => !string.Equals(x.chipName, nameBeforeChanging)).ToList();
+        SpawnableCustomChips = SpawnableCustomChips.Where(x => !string.Equals(x.Name, nameBeforeChanging)).ToList();
     }
 
     internal void RenameChip(string nameBeforeChanging, string nameAfterChanging)
     {
-        SpawnableCustomChips.First(x => string.Equals(x.chipName, nameBeforeChanging)).chipName = nameAfterChanging;
+        SpawnableCustomChips.First(x => string.Equals(x.Name, nameBeforeChanging)).Name = nameAfterChanging;
     }
 
 
@@ -234,8 +233,8 @@ public class Manager : MonoBehaviour
     {
         List<string> allChipNames = new List<string>();
 
-        if (builtin) allChipNames.AddRange(SpawnableBuiltinChips.Select(chip => chip.chipName));
-        if (custom) allChipNames.AddRange(SpawnableCustomChips.Select(chip => chip.chipName));
+        if (builtin) allChipNames.AddRange(SpawnableBuiltinChips.Select(chip => chip.Name));
+        if (custom) allChipNames.AddRange(SpawnableCustomChips.Select(chip => chip.Name));
 
         return allChipNames;
     }
@@ -245,7 +244,7 @@ public class Manager : MonoBehaviour
         var allChips = new List<Chip>(SpawnableBuiltinChips);
         allChips.AddRange(SpawnableCustomChips);
 
-        return allChips.ToDictionary(chip => chip.chipName);
+        return allChips.ToDictionary(chip => chip.Name);
     }
 
     public void ChangeFolderToChip(string ChipName, int index)

@@ -15,6 +15,8 @@ public class SavedWire
 
     public SavedWire(ChipInstanceHolder chipInstanceHolder, Wire wire)
     {
+        if (chipInstanceHolder == null|| wire == null)return;
+
         Pin parentPin = wire.startPin;
         Pin childPin = wire.endPin;
 

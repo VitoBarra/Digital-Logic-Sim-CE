@@ -3,12 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DLS.Core.Simulation;
+using UnityEngine.Serialization;
 
 public class Chip : MonoBehaviour
 {
 
 
-    public string chipName = "Untitled";
+    public string Name ;
     public List<Pin> inputPins;
     public List<Pin> outputPins;
     public bool Editable = false;
@@ -91,7 +92,7 @@ public class Chip : MonoBehaviour
         }
         catch (Exception e)
         {
-            Console.WriteLine(chipName);
+            Console.WriteLine(Name);
             throw;
         }
     }

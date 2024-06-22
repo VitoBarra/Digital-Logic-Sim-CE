@@ -164,9 +164,6 @@ public class WireDisplay : ThemeDisplay
             Vector2 localPos = transform.parent.InverseTransformPoint(drawPoints[i]);
             LineRenderer.SetPosition(i, new Vector3(localPos.x, localPos.y, -0.01f));
         }
-        //
-        // float depthOffset = 5;
-        // transform.localPosition = Vector3.forward * (depth + depthOffset);
 
         UpdateCollider();
     }

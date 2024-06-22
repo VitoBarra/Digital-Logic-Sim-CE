@@ -362,7 +362,6 @@ namespace Interaction.Signal
             foreach (var selectedSignal in Signals.ChipSignals)
             {
                 OnDeleteChip?.Invoke(selectedSignal);
-
                 Destroy(selectedSignal.gameObject);
             }
 

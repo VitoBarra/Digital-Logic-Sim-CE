@@ -19,9 +19,13 @@ public class SaveCompatibility : MonoBehaviour
 {
     private const bool WRITEENABLE = true;
 
-    private static bool DirtyBit = false;
+    private static bool DirtyBit { get; set; } = false;
+
+    public static bool CanWriteFile => WRITEENABLE && DirtyBit;
 
     private static bool FolderDirtyBit = false;
+
+    private static string CurrentChipName;
 
     public delegate void CompDelegate(ref JObject SaveFile);
 
@@ -56,59 +60,39 @@ public class SaveCompatibility : MonoBehaviour
 
     #region SaveFile
 
-    public static JObject FixSaveCompatibility(string chipSaveStr , string chipName)
+    public static SavedChip FixSaveCompatibility(string chipSaveStr, string chipName)
     {
+        DirtyBit = false;
+        CurrentChipName = chipName;
         var JChipSave = JsonConvert.DeserializeObject(chipSaveStr) as JObject;
 
         if (!chipSaveStr.Contains("wireType") || chipSaveStr.Contains("outputPinNames") ||
             !chipSaveStr.Contains("outputPins"))
             CheckedCompatibility(From025to037, ref JChipSave, "25", "37");
-        if (!chipSaveStr.Contains("Data") || !chipSaveStr.Contains("ChipDependecies"))
+        if (chipSaveStr.Contains("folderName") &&
+            (!chipSaveStr.Contains("Data") || !chipSaveStr.Contains("ChipDependecies")))
             CheckedCompatibility(From037to038, ref JChipSave, "37", "38");
         if (chipSaveStr.Contains("folderName") || !chipSaveStr.Contains("FolderIndex"))
             CheckedCompatibility(From038to039, ref JChipSave, "38", "39");
-        if (chipSaveStr.Contains("\"SIGNAL IN\",\n\"SIGNAL OUT\",") || !chipSaveStr.Contains("WireLayout"))
+        if (!chipSaveStr.Contains("Connections"))
             CheckedCompatibility(From039to040, ref JChipSave, "39", "40");
 
 
         // if (!chipSaveStr.Contains("Connections"))
         //     UpdateToOfficial(ref JChipSave, SaveSystem.ReadWire(chipName), chipName);
 
-        WriteIfAllawed(JChipSave, chipName);
+        CurrentChipName = "";
 
+        if (!DirtyBit )
+            return null;
 
-        return JChipSave;
-    }
-
-    private static void WriteIfAllawed(JObject jChipSave, string chipName)
-    {
-        if ( !WRITEENABLE || !DirtyBit ) return;
-        var chipSaveStr = JsonConvert.SerializeObject(jChipSave, Formatting.Indented);
-        WriteFile(chipName, chipSaveStr);
+        var updateSaveContent = JsonConvert.SerializeObject(JChipSave, Formatting.Indented);
+        return SaveSystem.DeserializeChip(updateSaveContent);
 
     }
 
 
-    private static void UpdateToOfficial(ref JObject JChipSave, SavedWireLayout wireSaveStr, string name)
-    {
-        var ConnectionSave = wireSaveStr;
 
-        try
-        {
-            From039ToOfficial(ref JChipSave, ConnectionSave);
-
-            //Debug
-            SaveSystem.SetExtension(".json");
-            var Content = JsonConvert.SerializeObject(JChipSave, Formatting.Indented);
-            WriteFile(name, Content, "\\Official");
-            SaveSystem.SetExtension(".txt");
-            //EndDebug
-        }
-        catch (Exception e)
-        {
-            DLSLogger.LogError($" failed to ensure compatibility of {name}", "039 to Official " + e.Message);
-        }
-    }
 
 
     private static void CheckedCompatibility(CompDelegate CompDel, ref JObject JChipSave, string vfrom, string Vto)
@@ -119,30 +103,12 @@ public class SaveCompatibility : MonoBehaviour
         }
         catch (Exception e)
         {
-            string name = "";
-            var Name = JChipSave.Property("name");
-
-            if (Name != null)
-                name = Name.Value.ToString();
-            else
-            {
-                var DataName = (JChipSave.Property("Data").Value as JObject).Property("name");
-                if (DataName != null)
-                    name = DataName.Value.ToString();
-            }
-
-            DLSLogger.LogError($" failed to ensure compatibility of {name}", $"{vfrom} to {Vto} ");
+            DLSLogger.LogError($" failed to ensure compatibility of {CurrentChipName}", $"{vfrom} to {Vto} ");
             Debug.LogError(e.Message);
-
         }
     }
 
-    private static void WriteFile(string Chipname, string ChipContent, string extraPath = "")
-    {
-        if (!DirtyBit || !WRITEENABLE) return;
-        SaveSystem.WriteChip(Chipname, ChipContent, extraPath);
-        DirtyBit = false;
-    }
+
 
     private static void From025to037(ref JObject JChipSave)
     {
@@ -235,6 +201,7 @@ public class SaveCompatibility : MonoBehaviour
 
     private static void From038to039(ref JObject JChipSave)
     {
+
         var OldData = JChipSave.Property("Data").Value as JObject;
 
         var Colour = JsonConvert.DeserializeObject<JObject>(OldData.Property("Colour").Value.ToString());
@@ -263,11 +230,12 @@ public class SaveCompatibility : MonoBehaviour
 
     private static void From039to040(ref JObject JChipSave)
     {
+
+
         JChipSave.Add("Version", "0.40-CE");
 
         //Rewrite Color in HEX
         var OldData = JChipSave.Property("Data").Value as JObject;
-
 
 
         var NewChipInfo = new ChipInfo()
@@ -283,8 +251,7 @@ public class SaveCompatibility : MonoBehaviour
 
         JChipSave.Remove("Data");
 
-        JChipSave.Add("Info",JObject.FromObject(NewChipInfo,ColorConverterHEX.GenerateSerializerConverter()));
-
+        JChipSave.Add("Info", JObject.FromObject(NewChipInfo, ColorConverterHEX.GenerateSerializerConverter()));
 
 
         //Remove the SIGNAL IN and SIGNAL OUT from the ChipDependencies and fix typo
@@ -299,11 +266,21 @@ public class SaveCompatibility : MonoBehaviour
         var newChipDependencies = JArray.FromObject(NewChipData);
         JChipSave.Add("ChipDependencies", newChipDependencies);
 
-        DirtyBit = false;
+
+        SaveSystem.FileExtension= ".txt";
+        SaveSystem.ChipFolder = "";
+        //Merge ChipData and WireData
+        SavedWireLayout wireLayout = SaveSystem.ReadWireLayout(CurrentChipName);
+
+        JChipSave.Add("Connections", JArray.FromObject(wireLayout.serializableWires));
+
+        DirtyBit = true;
     }
 
     // in this region are the methods that convert the save file to the new official format
+
     #region ToOfficial
+
     private static void From039ToOfficial(ref JObject JChipSave, SavedWireLayout wireSaveLayout)
     {
         ChipDescription NewSaveFormat = new ChipDescription();
@@ -411,7 +388,7 @@ public class SaveCompatibility : MonoBehaviour
                     connection.Source.PinID = subOutPin.parentChipOutputIndex;
                 }
 
-                SavedWire wire = GetSavedWire(wireLayout,  subOutPin.parentChipIndex, subOutPin.parentChipOutputIndex);
+                SavedWire wire = GetSavedWire(wireLayout, subOutPin.parentChipIndex, subOutPin.parentChipOutputIndex);
 
                 connection.Target = new PinAddress();
                 connection.Target.PinType = wire.childChipIndex <
@@ -509,6 +486,7 @@ public class SaveCompatibility : MonoBehaviour
     }
 
     #endregion
+
     #endregion
 
     #region FolderFile

@@ -22,15 +22,19 @@ public class SavedChip
     // signals, then remaining component chips
     public SavedComponentChip[] savedComponentChips;
 
+    public SavedWire[] Connections;
+
     public SavedChip(ChipInstanceHolder chipInstanceHolder)
     {
         if (chipInstanceHolder == null)
             return;
 
+        Version = GameConstant.GAMEVERSION_SAVE;
+
         Info = chipInstanceHolder.Info;
 
         // Create list of (unique) names of all chips used to make this chip
-        ChipDependencies = chipInstanceHolder.componentChips.Select(x => x.chipName)
+        ChipDependencies = chipInstanceHolder.componentChips.Select(x => x.Name)
                                 .Distinct()
                                 .SkipWhile(x=> x is "SIGNAL IN" or "SIGNAL OUT")
                                 .ToArray();
@@ -40,11 +44,17 @@ public class SavedChip
 
         for (int i = 0; i < chipInstanceHolder.componentChips.Length; i++)
             savedComponentChips[i] = new SavedComponentChip(chipInstanceHolder, chipInstanceHolder.componentChips[i]);
+
+
+        Wire[] allWires = chipInstanceHolder.wires;
+        Connections = new SavedWire[allWires.Length];
+        for (int i = 0; i < allWires.Length; i++)
+            Connections[i] = new SavedWire(chipInstanceHolder, allWires[i]);
+
     }
 
     public void ValidateDefaultData()
     {
-
         Info.ValidateDefaultData();
     }
 

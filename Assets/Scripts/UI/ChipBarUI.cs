@@ -159,14 +159,14 @@ public class ChipBarUI : MonoBehaviour
 
     void AddChipButton(SpawnableChip chip)
     {
-        if (hideList.Contains(chip.chipName))
+        if (hideList.Contains(chip.Name))
             return;
 
         CustomButton button = Instantiate(buttonPrefab);
-        button.gameObject.name = "Create (" + chip.chipName + ")";
+        button.gameObject.name = "Create (" + chip.Name + ")";
         // Set button text
         var buttonTextUI = button.GetComponentInChildren<TMP_Text>();
-        buttonTextUI.text = chip.chipName;
+        buttonTextUI.text = chip.Name;
 
         // Set button size
         var buttonRect = button.GetComponent<RectTransform>();
@@ -186,11 +186,11 @@ public class ChipBarUI : MonoBehaviour
 
     void UpdateChipButton(Chip chip)
     {
-        if (hideList.Contains(chip.chipName))
+        if (hideList.Contains(chip.Name))
             return;
 
         CustomButton button =
-            customButton.Find(g => g.name == "Create (" + chip.chipName + ")");
+            customButton.Find(g => g.name == "Create (" + chip.Name + ")");
         if (button == null) return;
 
         button.ClearEvents();
@@ -221,7 +221,7 @@ public class ChipBarUI : MonoBehaviour
     public void AddFolderView(int FolderIndex, Sprite sprite)
     {
         var folderName = FolderSystem.GetFolderName(FolderIndex);
-        TMP_Dropdown.OptionData newOption = new TMP_Dropdown.OptionData(folderName, sprite, Color.white);
+        TMP_Dropdown.OptionData newOption = new TMP_Dropdown.OptionData(folderName, sprite);
 
 
         FolderDropdown.options.Remove(newFolderOption);
