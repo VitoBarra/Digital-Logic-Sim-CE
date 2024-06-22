@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class ChipEditor : MonoBehaviour
 {
@@ -11,12 +14,34 @@ public class ChipEditor : MonoBehaviour
     public ChipInteraction chipInteraction;
     public PinAndWireInteraction pinAndWireInteraction;
 
+    public List<InputSignal> InputSignals
+    {
+        get
+        {
+            var res =inputsEditor.GetAllSignals().Cast<InputSignal>().ToList();
+            res.RemoveAll(x=> x is null);
+            return res;
+        }
+    }
 
-    public ChipData Data;
+    public List<OutputSignal> OutputSignals
+    {
+        get
+        {
+            var res = outputsEditor.GetAllSignals().Cast<OutputSignal>().ToList();
+            res.RemoveAll(x => x is null);
+            return res;
+        }
+    }
+
+
+
+
+    public ChipInfo CurrentChip;
 
     void Awake()
     {
-        Data = new ChipData()
+        CurrentChip = new ChipInfo()
         {
             FolderIndex = 0,
             scale = 1
@@ -48,12 +73,12 @@ public class ChipEditor : MonoBehaviour
         // Load component chips
         switch (chipData)
         {
-            case InputSignal inp:
-                inp.wireType = inp.outputPins[0].wireType;
-                return inputsEditor.LoadSignal(inp, pos.y, inp.GroupId);
-            case OutputSignal outp:
-                outp.wireType = outp.inputPins[0].wireType;
-                return outputsEditor.LoadSignal(outp, pos.y, outp.GroupId);
+            case InputSignal input:
+                input.wireType = input.outputPins[0].wireType;
+                return inputsEditor.LoadSignal(input, pos.y, input.GroupId);
+            case OutputSignal output:
+                output.wireType = output.inputPins[0].wireType;
+                return outputsEditor.LoadSignal(output, pos.y, output.GroupId);
             default:
                 return chipInteraction.LoadChip(chipData, pos);
         }

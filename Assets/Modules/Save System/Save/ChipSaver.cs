@@ -27,11 +27,11 @@ namespace Modules.Save_System.Save
             string wiringSaveString = JsonUtility.ToJson(wiringSystem, usePrettyPrint);
 
             // Write to file
-            string savePath = SaveSystem.GetPathToSaveFile(chipEditor.Data.name);
+            string savePath = SaveSystem.GetPathToSaveFile(chipEditor.CurrentChip.name);
             SaveSystem.WriteFile(savePath, saveString);
 
             string wireLayoutSavePath =
-                SaveSystem.GetPathToWireSaveFile(chipEditor.Data.name);
+                SaveSystem.GetPathToWireSaveFile(chipEditor.CurrentChip.name);
             SaveSystem.WriteFile(wireLayoutSavePath, wiringSaveString);
         }
 
@@ -68,10 +68,10 @@ namespace Modules.Save_System.Save
 
             Manager manager = GameObject.FindObjectOfType<Manager>();
             SavedChip[] allChips = SaveSystem.GetAllSavedChips();
-            SavedChip currentChip = Array.Find(allChips, c => c.Data.name == chipName);
+            SavedChip currentChip = Array.Find(allChips, c => c.Info.name == chipName);
             if (currentChip == null) return childrenChips;
 
-            childrenChips.Add(currentChip.Data.creationIndex, chipName);
+            childrenChips.Add(currentChip.Info.creationIndex, chipName);
 
             foreach (SavedComponentChip scc in currentChip.savedComponentChips)
             {
@@ -100,16 +100,16 @@ namespace Modules.Save_System.Save
             string wiringSaveString = JsonUtility.ToJson(new SavedWireLayout(chipInstanceHolder), usePrettyPrint);
 
             // Write to file
-            SaveSystem.WriteChip(chipEditor.Data.name, saveString);
-            SaveSystem.WriteWire(chipEditor.Data.name, wiringSaveString);
+            SaveSystem.WriteChip(chipEditor.CurrentChip.name, saveString);
+            SaveSystem.WriteWire(chipEditor.CurrentChip.name, wiringSaveString);
 
 
             // Update parent chips using this chip
-            string currentChipName = chipEditor.Data.name;
+            string currentChipName = chipEditor.CurrentChip.name;
             SavedChip[] savedChips = SaveSystem.GetAllSavedChips();
             foreach (var t in savedChips)
             {
-                if (!t.ChipDependecies.Contains(currentChipName)) continue;
+                if (!t.ChipDependencies.Contains(currentChipName)) continue;
                 int currentChipIndex =
                     Array.FindIndex(t.savedComponentChips,
                         c => c.chipName == currentChipName);
@@ -130,15 +130,15 @@ namespace Modules.Save_System.Save
                 }
 
                 // Write to file
-                SaveSystem.WriteChip(t.Data.name, JsonUtility.ToJson(t, usePrettyPrint));
+                SaveSystem.WriteChip(t.Info.name, JsonUtility.ToJson(t, usePrettyPrint));
             }
         }
 
         internal static void ChangeFolder(string Chipname, int FolderIndex)
         {
             var ChipToEdit = SaveSystem.GetAllSavedChipsDic()[Chipname];
-            if (ChipToEdit.Data.FolderIndex == FolderIndex) return;
-            ChipToEdit.Data.FolderIndex = FolderIndex;
+            if (ChipToEdit.Info.FolderIndex == FolderIndex) return;
+            ChipToEdit.Info.FolderIndex = FolderIndex;
             SaveSystem.WriteChip(Chipname, JsonUtility.ToJson(ChipToEdit, usePrettyPrint));
         }
 
@@ -153,7 +153,7 @@ namespace Modules.Save_System.Save
 
             SavedChip[] savedChips = SaveSystem.GetAllSavedChips();
             foreach (SavedChip savedChip in savedChips)
-                if (savedChip.ChipDependecies.Contains(chipName))
+                if (savedChip.ChipDependencies.Contains(chipName))
                     return false;
             return true;
         }
@@ -163,7 +163,7 @@ namespace Modules.Save_System.Save
             SavedChip[] savedChips = SaveSystem.GetAllSavedChips();
             foreach (var t in savedChips)
             {
-                if (!t.ChipDependecies.Contains(chipName)) continue;
+                if (!t.ChipDependencies.Contains(chipName)) continue;
                 SavedChip parentChip = t;
                 int currentChipIndex = Array.FindIndex(parentChip.savedComponentChips,
                     scc => scc.chipName == chipName);
@@ -206,17 +206,17 @@ namespace Modules.Save_System.Save
             foreach (var savedChip in savedChips)
             {
                 bool changed = false;
-                if (savedChip.Data.name == oldChipName)
+                if (savedChip.Info.name == oldChipName)
                 {
-                    savedChip.Data.name = newChipName;
+                    savedChip.Info.name = newChipName;
                     changed = true;
                 }
 
-                for (int j = 0; j < savedChip.ChipDependecies.Length; j++)
+                for (int j = 0; j < savedChip.ChipDependencies.Length; j++)
                 {
-                    string componentName = savedChip.ChipDependecies[j];
+                    string componentName = savedChip.ChipDependencies[j];
                     if (componentName != oldChipName) continue;
-                    savedChip.ChipDependecies[j] = newChipName;
+                    savedChip.ChipDependencies[j] = newChipName;
                     changed = true;
                 }
 
@@ -232,7 +232,7 @@ namespace Modules.Save_System.Save
                 if (!changed) continue;
                 string saveString = JsonUtility.ToJson(savedChip, usePrettyPrint);
                 // Write to file
-                SaveSystem.WriteChip(savedChip.Data.name, saveString);
+                SaveSystem.WriteChip(savedChip.Info.name, saveString);
             }
 
             // Rename wire layer file

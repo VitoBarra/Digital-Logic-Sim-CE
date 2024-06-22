@@ -37,7 +37,7 @@ public class ChipInterfaceEditor : MonoBehaviour
 
     public ChipEditor CurrentEditor
     {
-        set => currentEditorName = value.Data.name;
+        set => currentEditorName = value.CurrentChip.name;
     }
 
     public SignalInteraction selectedSignals { get; private set; }
@@ -99,11 +99,10 @@ public class ChipInterfaceEditor : MonoBehaviour
 
     public ChipSignal LoadSignal(ChipSignal signal, float y, int groupID)
     {
-        var e = SignalsByID.GetValueOrDefault(groupID);
-        ChipSignal chip;
-        if (e != null) return e.AddOneSignal().ChipSignal;
+        var signalInteraction = SignalsByID.GetValueOrDefault(groupID);
+        if (signalInteraction  is not null) return signalInteraction.AddOneSignal().ChipSignal;
         
-        chip = CreateSignalInteractionGroup(y, 1, signal.wireType, false).Signals.ChipSignals[0];
+        ChipSignal chip = CreateSignalInteractionGroup(y, 1, signal.wireType, false).Signals.ChipSignals[0];
         return chip;
 
     }

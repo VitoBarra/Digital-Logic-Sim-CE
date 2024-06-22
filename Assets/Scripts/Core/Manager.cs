@@ -45,13 +45,13 @@ public class Manager : MonoBehaviour
     
     [FormerlySerializedAs("UIManager")] public MenuManager menuManager;
 
-    private ChipEditor activeChipEditor;
+    private ChipEditor activeEditor;
     //Interaction Access
-    public static ChipEditor ActiveChipEditor => instance.activeChipEditor;
-    public static PinAndWireInteraction PinAndWireInteraction => instance.activeChipEditor.pinAndWireInteraction;
-    public static ChipInteraction ChipInteraction => instance.activeChipEditor.chipInteraction;
-    public static ChipInterfaceEditor InputsEditor => instance.activeChipEditor.inputsEditor;
-    public static ChipInterfaceEditor OutputsEditor => instance.activeChipEditor.outputsEditor;
+    public static ChipEditor ActiveEditor => instance.activeEditor;
+    public static PinAndWireInteraction PinAndWireInteraction => instance.activeEditor.pinAndWireInteraction;
+    public static ChipInteraction ChipInteraction => instance.activeEditor.chipInteraction;
+    public static ChipInterfaceEditor InputsEditor => instance.activeEditor.inputsEditor;
+    public static ChipInterfaceEditor OutputsEditor => instance.activeEditor.outputsEditor;
 
     void Awake()
     {
@@ -63,7 +63,7 @@ public class Manager : MonoBehaviour
     void Start()
     {
         SpawnableCustomChips = new List<SpawnableChip>();
-        activeChipEditor = FindObjectOfType<ChipEditor>();
+        activeEditor = FindObjectOfType<ChipEditor>();
         SaveSystem.LoadAllChips(this);
     }
 
@@ -72,9 +72,9 @@ public class Manager : MonoBehaviour
         if (!Input.GetKeyDown(KeyCode.Y)) return;
 
         Pin[] unconnectedInputs =
-            activeChipEditor.chipInteraction.UnconnectedInputPins;
+            activeEditor.chipInteraction.UnconnectedInputPins;
         Pin[] unconnectedOutputs =
-            activeChipEditor.chipInteraction.UnconnectedOutputPins;
+            activeEditor.chipInteraction.UnconnectedOutputPins;
         if (unconnectedInputs.Length > 0)
         {
             Debug.Log("Found " + unconnectedInputs.Length +
@@ -108,9 +108,9 @@ public class Manager : MonoBehaviour
     {
         if (instanceHolder == null) return null;
 
-        activeChipEditor.Data = instanceHolder.Data;
-        ScalingManager.i.SetScale(instanceHolder.Data.scale);
-        ChipEditorOptions.instance.SetUIValues(activeChipEditor);
+        activeEditor.CurrentChip = instanceHolder.Info;
+        ScalingManager.i.SetScale(instanceHolder.Info.scale);
+        ChipEditorOptions.instance.SetUIValues(activeEditor);
 
         Chip loadedChip = PackageCustomChip();
         if (loadedChip is CustomChip custom)
@@ -124,17 +124,17 @@ public class Manager : MonoBehaviour
     {
         ClearEditor();
         ChipEditorMode = ChipEditorMode.Update;
-        ChipInstanceHolder chipInstanceHolder = ChipLoader.GetChipInstanceData(chip, activeChipEditor);
-        ActiveChipEditor.Data = chipInstanceHolder.Data;
+        ChipInstanceHolder chipInstanceHolder = ChipLoader.GetChipInstanceData(chip, activeEditor);
+        ActiveEditor.CurrentChip = chipInstanceHolder.Info;
 
-        menuManager.SetEditingChipName(chipInstanceHolder.Data.name);
-        ScalingManager.i.SetScale(chipInstanceHolder.Data.scale);
-        ChipEditorOptions.instance.SetUIValues(activeChipEditor);
+        menuManager.SetEditingChipName(chipInstanceHolder.Info.name);
+        ScalingManager.i.SetScale(chipInstanceHolder.Info.scale);
+        ChipEditorOptions.instance.SetUIValues(activeEditor);
     }
 
     public void SaveAndPackageChip()
     {
-        ChipSaver.Save(activeChipEditor);
+        ChipSaver.Save(activeEditor);
         PackageCustomChip();
         ClearEditor();
     }
@@ -142,9 +142,9 @@ public class Manager : MonoBehaviour
     public void UpdateChip()
     {
         SpawnableChip updatedChip =
-            ChipPackageSpawner.i.TryPackageAndReplaceChip(SpawnableCustomChips, activeChipEditor.Data.name);
+            ChipPackageSpawner.i.TryPackageAndReplaceChip(SpawnableCustomChips, activeEditor.CurrentChip.name);
         customChipUpdated?.Invoke(updatedChip);
-        ChipSaver.Update(activeChipEditor, updatedChip);
+        ChipSaver.Update(activeEditor, updatedChip);
         ChipEditorMode = ChipEditorMode.Create;
         ClearEditor();
         menuManager.SetEditingChipName("");
@@ -183,7 +183,7 @@ public class Manager : MonoBehaviour
     private void ClearEditor()
     {
         //TODO: Don't destroy all the editor
-        if (activeChipEditor)
+        if (activeEditor)
         {
             // if (activeChipEditor.gameObject.transform.childCount > 2)
             // {
@@ -194,16 +194,16 @@ public class Manager : MonoBehaviour
             // activeChipEditor.chipImplementationHolder = Instantiate(ImplamentationHolder, activeChipEditor.gameObject.transform).transform;
             // activeChipEditor.Data = new ChipData();
 
-            Destroy(activeChipEditor.gameObject);
+            Destroy(activeEditor.gameObject);
         }
 
-        activeChipEditor = Instantiate(chipEditorPrefab, Vector3.zero, Quaternion.identity);
+        activeEditor = Instantiate(chipEditorPrefab, Vector3.zero, Quaternion.identity);
 
-        activeChipEditor.inputsEditor.CurrentEditor = activeChipEditor;
-        activeChipEditor.outputsEditor.CurrentEditor = activeChipEditor;
+        activeEditor.inputsEditor.CurrentEditor = activeEditor;
+        activeEditor.outputsEditor.CurrentEditor = activeEditor;
 
         OnEditorClear?.Invoke();
-        ChipEditorOptions.instance.SetUIValues(activeChipEditor);
+        ChipEditorOptions.instance.SetUIValues(activeEditor);
 
     }
 
@@ -213,7 +213,7 @@ public class Manager : MonoBehaviour
         if (chip is CustomChip custom)
             custom.ApplyWireModes();
 
-        activeChipEditor.chipInteraction.ChipButtonInteraction(chip);
+        activeEditor.chipInteraction.ChipButtonInteraction(chip);
     }
 
     public void LoadMainMenu()

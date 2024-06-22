@@ -174,7 +174,7 @@ namespace Interaction.Signal
         private void NotifyMovement()
         {
             OnDragging?.Invoke(GroupCenter, EditorInterfaceType);
-            Manager.ActiveChipEditor.chipInteraction.NotifyMovement();
+            Manager.ActiveEditor.chipInteraction.NotifyMovement();
         }
 
 
@@ -276,7 +276,7 @@ namespace Interaction.Signal
             foreach (InputSignal signal in Signals.ChipSignals)
             {
                 var pin = signal.outputPins[0];
-                if (pin == null) return;
+                if (pin is null) return;
                 pin.wireType = newWireType;
                 Manager.PinAndWireInteraction.DestroyConnectedWires(pin);
                 signal.SetState(PinStates.AllLow(newWireType));

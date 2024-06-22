@@ -45,7 +45,7 @@ public class ChipSignal : Chip
 
     public virtual void UpdateSignalName(string newName) => signalName = newName;
 
-    public void NotifyStateChange()
+    protected void NotifyStateChange()
     {
         if (!interactable) return;
         OnStateChange?.Invoke(wireType, State);

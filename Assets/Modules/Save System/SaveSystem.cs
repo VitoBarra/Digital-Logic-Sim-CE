@@ -43,16 +43,12 @@ public static class SaveSystem
         FolderLoader.CreateDefault(FoldersFilePath);
     }
 
-    public static string[] GetChipSavePaths()
+    public static FileInfo[] GetChipSavePaths()
     {
-        DirectoryInfo directory =
-            new DirectoryInfo(CurrentSaveProfileDirectoryPath);
+        DirectoryInfo directory = new DirectoryInfo(CurrentSaveProfileDirectoryPath);
         FileInfo[] files = directory.GetFiles("*" + FileExtension);
-        var filtered =
-            files.Where(f => !f.Attributes.HasFlag(FileAttributes.Hidden));
-        return filtered.Select(f => f.ToString()).ToArray();
-        // return Directory.GetFiles(CurrentSaveProfileDirectoryPath, "*" +
-        // fileExtension);
+        var filtered =files.Where(f => !f.Attributes.HasFlag(FileAttributes.Hidden));
+        return filtered.ToArray();
     }
 
     public static void LoadAllChips(Manager manager)

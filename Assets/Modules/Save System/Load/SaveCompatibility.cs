@@ -1,16 +1,20 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Diagnostics;
 using System.Linq;
 using DLS.ChipData;
-using UnityEditor.MemoryProfiler;
+using DLS.SaveSystem.Serializable.SerializationHelper;
 using Color = UnityEngine.Color;
 using ColorConverter = DLS.SaveSystem.Serializable.SerializationHelper.ColorConverter;
+using Debug = UnityEngine.Debug;
 
+
+/// <summary>
+/// this class have the role to ensre that the save file is compatible with the current version of the game by updating the save file to the format usade by this version of DLS
+/// this is done in an incremental way meaning that one step is done to ensure compatibility with the next version of the game until the save file is compatible with the current version
+/// </summary>
 public class SaveCompatibility : MonoBehaviour
 {
     private const bool WRITEENABLE = true;
@@ -52,7 +56,7 @@ public class SaveCompatibility : MonoBehaviour
 
     #region SaveFile
 
-    public static void FixSaveCompatibility(ref string chipSaveStr)
+    public static JObject FixSaveCompatibility(string chipSaveStr , string chipName)
     {
         var JChipSave = JsonConvert.DeserializeObject(chipSaveStr) as JObject;
 
@@ -63,17 +67,25 @@ public class SaveCompatibility : MonoBehaviour
             CheckedCompatibility(From037to038, ref JChipSave, "37", "38");
         if (chipSaveStr.Contains("folderName") || !chipSaveStr.Contains("FolderIndex"))
             CheckedCompatibility(From038to039, ref JChipSave, "38", "39");
+        if (chipSaveStr.Contains("\"SIGNAL IN\",\n\"SIGNAL OUT\",") || !chipSaveStr.Contains("WireLayout"))
+            CheckedCompatibility(From039to040, ref JChipSave, "39", "40");
 
-        string chipName = (JChipSave.Property("Data").Value as JObject).Property("name").Value.ToString();
+
+        // if (!chipSaveStr.Contains("Connections"))
+        //     UpdateToOfficial(ref JChipSave, SaveSystem.ReadWire(chipName), chipName);
+
+        WriteIfAllawed(JChipSave, chipName);
 
 
-        if (!chipSaveStr.Contains("Connections"))
-            UpdateToOfficial(ref JChipSave, SaveSystem.ReadWire(chipName), chipName);
+        return JChipSave;
+    }
 
-        if (!DirtyBit) return;
-
-        chipSaveStr = JsonConvert.SerializeObject(JChipSave, Formatting.Indented);
+    private static void WriteIfAllawed(JObject jChipSave, string chipName)
+    {
+        if ( !WRITEENABLE || !DirtyBit ) return;
+        var chipSaveStr = JsonConvert.SerializeObject(jChipSave, Formatting.Indented);
         WriteFile(chipName, chipSaveStr);
+
     }
 
 
@@ -105,7 +117,7 @@ public class SaveCompatibility : MonoBehaviour
         {
             CompDel(ref JChipSave);
         }
-        catch
+        catch (Exception e)
         {
             string name = "";
             var Name = JChipSave.Property("name");
@@ -120,6 +132,8 @@ public class SaveCompatibility : MonoBehaviour
             }
 
             DLSLogger.LogError($" failed to ensure compatibility of {name}", $"{vfrom} to {Vto} ");
+            Debug.LogError(e.Message);
+
         }
     }
 
@@ -157,7 +171,7 @@ public class SaveCompatibility : MonoBehaviour
             CurrentComponent.Add("outputPins", JArray.FromObject(newOutputPins));
 
             // Add to all 'inputPins' dictionary the property 'wireType' with a value
-            // of 0 (at version 0.25 buses did not exist so its imposible for the wire
+            // of 0 (at version 0.25 buses did not exist, it's impossible for the wire
             // to be of other type)
             var inputPins = CurrentComponent.Property("inputPins").Value as JArray;
             foreach (var jtok in inputPins)
@@ -199,7 +213,7 @@ public class SaveCompatibility : MonoBehaviour
 
 
             JChipSave.Add("Data", JObject.FromObject(NewChipData, ColorConverter.GenerateSerializerConverter()));
-            //lol.Add("Data", JsonConvert.DeserializeObject<JObject>(JsonConvert.SerializeObject(NewChipData, ColorConverter.GenerateSettingsConverterForColor())));
+
 
             JChipSave.Property("name").Remove();
             JChipSave.Property("creationIndex").Remove();
@@ -209,6 +223,7 @@ public class SaveCompatibility : MonoBehaviour
             JChipSave.Property("scale").Remove();
         }
 
+        //dont fix this typo
         if (JChipSave.Property("ChipDependecies") == null && JChipSave.Property("componentNameList") != null)
         {
             JChipSave.Add("ChipDependecies", JChipSave.Property("componentNameList").Value);
@@ -229,12 +244,12 @@ public class SaveCompatibility : MonoBehaviour
             : FolderSystem.ReverseIndex(OldData.Property("folderName").Value.ToString());
         float scale = OldData.Property("scale") == null ? 1 : OldData.Property("scale").Value.ToObject<float>();
 
-        var NewChipData = new ChipData()
+        var NewChipData = new ChipInfo()
         {
             name = OldData.Property("name").Value.ToString(),
             creationIndex = OldData.Property("creationIndex").Value.ToObject<int>(),
-            Colour = Colour.ToObject<Color>(),
-            NameColour = NameColour.ToObject<Color>(),
+            PackColor = Colour.ToObject<Color>(),
+            PackNameColor = NameColour.ToObject<Color>(),
             FolderIndex = folder,
             scale = scale
         };
@@ -246,7 +261,49 @@ public class SaveCompatibility : MonoBehaviour
         DirtyBit = true;
     }
 
+    private static void From039to040(ref JObject JChipSave)
+    {
+        JChipSave.Add("Version", "0.40-CE");
 
+        //Rewrite Color in HEX
+        var OldData = JChipSave.Property("Data").Value as JObject;
+
+
+
+        var NewChipInfo = new ChipInfo()
+        {
+            name = OldData.Property("name").Value.ToString(),
+            creationIndex = OldData.Property("creationIndex").Value.ToObject<int>(),
+            PackColor = OldData.Property("Colour").Value.ToObject<Color>(),
+            PackNameColor = OldData.Property("NameColour").Value.ToObject<Color>(),
+            FolderIndex = OldData.Property("FolderIndex").Value.ToObject<int>(),
+            scale = OldData.Property("scale").Value.ToObject<float>()
+        };
+
+
+        JChipSave.Remove("Data");
+
+        JChipSave.Add("Info",JObject.FromObject(NewChipInfo,ColorConverterHEX.GenerateSerializerConverter()));
+
+
+
+        //Remove the SIGNAL IN and SIGNAL OUT from the ChipDependencies and fix typo
+        var OldChipDependecies = JChipSave.Property("ChipDependecies").Value as JArray;
+
+        var oldcdtemp = new List<string>(JsonConvert.DeserializeObject<string[]>(OldChipDependecies.ToString()));
+
+        var NewChipData = oldcdtemp.SkipWhile(x => x.Equals("SIGNAL IN") || x.Equals("SIGNAL OUT")).ToArray();
+
+        //don't fix this typo
+        JChipSave.Property("ChipDependecies").Remove();
+        var newChipDependencies = JArray.FromObject(NewChipData);
+        JChipSave.Add("ChipDependencies", newChipDependencies);
+
+        DirtyBit = false;
+    }
+
+    // in this region are the methods that convert the save file to the new official format
+    #region ToOfficial
     private static void From039ToOfficial(ref JObject JChipSave, SavedWireLayout wireSaveLayout)
     {
         ChipDescription NewSaveFormat = new ChipDescription();
@@ -451,6 +508,7 @@ public class SaveCompatibility : MonoBehaviour
         chipDescription.OutputPins = outputSignal.ToArray();
     }
 
+    #endregion
     #endregion
 
     #region FolderFile

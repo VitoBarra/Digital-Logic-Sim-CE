@@ -13,7 +13,7 @@ namespace DLS.Core.Simulation
         public static int simulationFrame { get; private set; }
 
         InputSignal[] inputSignals;
-        ChipEditor chipEditor;
+        ChipEditor chipEditor => Manager.ActiveEditor;
         public bool active = false;
 
         public float minStepTime = 0.075f;
@@ -57,7 +57,6 @@ namespace DLS.Core.Simulation
 
         void StepSimulation()
         {
-            RefreshChipEditorReference();
             ClearOutputSignals();
             InitChips();
             ProcessInputs();
@@ -75,23 +74,18 @@ namespace DLS.Core.Simulation
 
         private void ClearOutputSignals()
         {
-            List<ChipSignal> outputSignals = chipEditor.outputsEditor.GetAllSignals();
-            foreach (var outsignal in outputSignals)
+            foreach (var outsignal in chipEditor.OutputSignals)
                 outsignal.ClearStates();
         }
 
         private void ProcessInputs()
         {
-            List<ChipSignal> inputSignals = chipEditor.inputsEditor.GetAllSignals();
-            foreach (var inputSignal in inputSignals)
-            {
-                ((InputSignal)inputSignal).SendSignal();
-            }
+            foreach (var inputSignal in chipEditor.InputSignals)
+                inputSignal.SendSignal();
         }
 
         void StopSimulation()
         {
-            RefreshChipEditorReference();
             ClearOutputSignals();
         }
 
@@ -108,10 +102,6 @@ namespace DLS.Core.Simulation
                 chip.InitSimulationFrame();
         }
 
-        private void RefreshChipEditorReference()
-        {
-            if (chipEditor == null)
-                chipEditor = Manager.ActiveChipEditor;
-        }
+
     }
 }

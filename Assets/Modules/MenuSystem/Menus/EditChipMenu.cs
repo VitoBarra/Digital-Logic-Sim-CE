@@ -85,7 +85,7 @@ public class EditChipMenu : MonoBehaviour
         for (int i = 0; i < savedChips.Length; i++)
         {
             // Name already exists in custom chips
-            if (savedChips[i].Data.name == chipName)
+            if (savedChips[i].Info.name == chipName)
                 return false;
         }
         return true;
