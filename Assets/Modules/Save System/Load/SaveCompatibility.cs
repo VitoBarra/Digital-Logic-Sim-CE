@@ -3,6 +3,7 @@ using UnityEngine;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Dynamic;
 using System.Linq;
 using DLS.ChipData;
 using DLS.SaveSystem.Serializable.SerializationHelper;
@@ -20,8 +21,9 @@ public class SaveCompatibility : MonoBehaviour
     private const bool WRITEENABLE = true;
 
     private static bool DirtyBit { get; set; } = false;
+    private static bool Error { get; set; } = false;
 
-    public static bool CanWriteFile => WRITEENABLE && DirtyBit;
+    public static bool CanWriteFile => WRITEENABLE && DirtyBit &&!Error;
 
     private static bool FolderDirtyBit = false;
 
@@ -30,7 +32,17 @@ public class SaveCompatibility : MonoBehaviour
     public delegate void CompDelegate(ref JObject SaveFile);
 
 
-    public struct ChipDataComp
+    public struct ChipInfov39
+    {
+        public string name;
+        public int creationIndex;
+        public Color Colour;
+        public Color NameColour;
+        public int FolderIndex;
+        public float scale;
+
+    }
+    public struct ChipDatav38
     {
         public string name;
         public int creationIndex;
@@ -63,6 +75,7 @@ public class SaveCompatibility : MonoBehaviour
     public static SavedChip FixSaveCompatibility(string chipSaveStr, string chipName)
     {
         DirtyBit = false;
+        Error = false;
         CurrentChipName = chipName;
         var JChipSave = JsonConvert.DeserializeObject(chipSaveStr) as JObject;
 
@@ -74,7 +87,7 @@ public class SaveCompatibility : MonoBehaviour
             CheckedCompatibility(From037to038, ref JChipSave, "37", "38");
         if (chipSaveStr.Contains("folderName") || !chipSaveStr.Contains("FolderIndex"))
             CheckedCompatibility(From038to039, ref JChipSave, "38", "39");
-        if (!chipSaveStr.Contains("Connections"))
+        if (!chipSaveStr.Contains("Connections") || !chipSaveStr.Contains("Version"))
             CheckedCompatibility(From039to040, ref JChipSave, "39", "40");
 
 
@@ -103,8 +116,9 @@ public class SaveCompatibility : MonoBehaviour
         }
         catch (Exception e)
         {
+            Error = true;
             DLSLogger.LogError($" failed to ensure compatibility of {CurrentChipName}", $"{vfrom} to {Vto} ");
-            Debug.LogError(e.Message);
+            throw;
         }
     }
 
@@ -167,7 +181,7 @@ public class SaveCompatibility : MonoBehaviour
         if (JChipSave.Property("Data") == null)
         {
             //replace old sparse data chip with new datachip
-            var NewChipData = new ChipDataComp()
+            var NewChipData = new ChipDatav38()
             {
                 name = JChipSave.Property("name").Value.ToString(),
                 creationIndex = JChipSave.Property("creationIndex").ToObject<int>(),
@@ -211,12 +225,12 @@ public class SaveCompatibility : MonoBehaviour
             : FolderSystem.ReverseIndex(OldData.Property("folderName").Value.ToString());
         float scale = OldData.Property("scale") == null ? 1 : OldData.Property("scale").Value.ToObject<float>();
 
-        var NewChipData = new ChipInfo()
+        var NewChipData = new ChipInfov39()
         {
             name = OldData.Property("name").Value.ToString(),
             creationIndex = OldData.Property("creationIndex").Value.ToObject<int>(),
-            PackColor = Colour.ToObject<Color>(),
-            PackNameColor = NameColour.ToObject<Color>(),
+            Colour = Colour.ToObject<Color>(),
+            NameColour = NameColour.ToObject<Color>(),
             FolderIndex = folder,
             scale = scale
         };
@@ -237,13 +251,14 @@ public class SaveCompatibility : MonoBehaviour
         //Rewrite Color in HEX
         var OldData = JChipSave.Property("Data").Value as JObject;
 
+        var packColor = JsonConvert.DeserializeObject<JObject>(OldData.Property("Colour").Value.ToString());
+        var nameColor = JsonConvert.DeserializeObject<JObject>(OldData.Property("NameColour").Value.ToString());
 
         var NewChipInfo = new ChipInfo()
         {
             name = OldData.Property("name").Value.ToString(),
-            creationIndex = OldData.Property("creationIndex").Value.ToObject<int>(),
-            PackColor = OldData.Property("Colour").Value.ToObject<Color>(),
-            PackNameColor = OldData.Property("NameColour").Value.ToObject<Color>(),
+            PackColor = packColor.ToObject<Color>(),
+            PackNameColor = nameColor.ToObject<Color>(),
             FolderIndex = OldData.Property("FolderIndex").Value.ToObject<int>(),
             scale = OldData.Property("scale").Value.ToObject<float>()
         };
@@ -270,7 +285,8 @@ public class SaveCompatibility : MonoBehaviour
         SaveSystem.FileExtension= ".txt";
         SaveSystem.ChipFolder = "";
         //Merge ChipData and WireData
-        SavedWireLayout wireLayout = SaveSystem.ReadWireLayout(CurrentChipName);
+        SavedWireLayout wireLayout = SaveSystem.Legacy.ReadWireLayout(CurrentChipName);
+        SaveSystem.ResetToDefaultSettings();
 
         JChipSave.Add("Connections", JArray.FromObject(wireLayout.serializableWires));
 
@@ -508,7 +524,7 @@ public class SaveCompatibility : MonoBehaviour
     private static void WriteFileFolder(string FoldersJsonStr)
     {
         if (!FolderDirtyBit && !WRITEENABLE) return;
-        SaveSystem.WriteFoldersFile(FoldersJsonStr);
+        SaveSystem.WriteProjectSettings(FoldersJsonStr);
         DirtyBit = false;
     }
 

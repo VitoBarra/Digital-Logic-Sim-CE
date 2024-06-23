@@ -7,7 +7,6 @@ using UnityEngine.Serialization;
 public struct ChipInfo
 {
     public string name;
-    public int creationIndex;
     public Color PackColor;
     public Color PackNameColor;
     public int FolderIndex;

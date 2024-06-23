@@ -2,10 +2,10 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
 
-public static class FolderLoader
+public static class ProjectSettings
 {
 
-    public static Dictionary<int, string> LoadCustomFolders(string path)
+    public static Dictionary<int, string> LoadProjectSettings(string path)
     {
         if (!File.Exists(path)) return new Dictionary<int, string>();
         string FoldersJson = SaveSystem.ReadFile(path);
@@ -13,7 +13,8 @@ public static class FolderLoader
         return JsonConvert.DeserializeObject<Dictionary<int, string>>(FoldersJson);
     }
 
-    public static void SaveCustomFolders(string path, IDictionary<int, string> folders)
+    // TODO: implement the project Settings
+    public static void SaveProjectSettings(string path, IDictionary<int, string> folders)
     {
         string jsonString = JsonConvert.SerializeObject(folders, Formatting.Indented);
         SaveSystem.WriteFile(path, jsonString);
@@ -23,7 +24,7 @@ public static class FolderLoader
     {
         if (File.Exists(path)) return;
 
-        SaveCustomFolders(path, FolderSystem.DefaultFolder);
+        SaveProjectSettings(path, FolderSystem.DefaultFolder);
 
     }
 }

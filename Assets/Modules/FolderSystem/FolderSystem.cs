@@ -7,17 +7,24 @@ public enum DefaultKays { Comp = 0, Gate = 1, Misc = 2 }
 public class FolderSystem
 {
     private static bool Inizialized = false;
-    public static IEnumerable<KeyValuePair<int, string>> Enum => Folders.AsEnumerable();
 
-    public static Dictionary<int, string> DefaultFolder
+    public static IEnumerable<KeyValuePair<int, string>> Enum
     {
-        get => new Dictionary<int, string>()
+        get
+        {
+            if(Folders is null || !Inizialized )
+                Init();
+            return Folders.AsEnumerable();
+        }
+    }
+
+    public static Dictionary<int, string> DefaultFolder =>
+        new Dictionary<int, string>()
         {
             { (int)DefaultKays.Comp , "Comp" },
             { (int)DefaultKays.Gate , "Gate" },
             { (int)DefaultKays.Misc , "Misc"}
         };
-    }
 
     private static Dictionary<int, string> Folders;
 
@@ -26,7 +33,7 @@ public class FolderSystem
     {
         Folders = new Dictionary<int, string>(DefaultFolder);
 
-        foreach (var kv in SaveSystem.LoadCustomFolders())
+        foreach (var kv in SaveSystem.LoadProjectSettings())
             Folders.TryAdd(kv.Key, kv.Value);
 
         Inizialized = true;
@@ -49,7 +56,7 @@ public class FolderSystem
         if (!Inizialized) return -1;
 
         Folders[Folders.Count] = newFolderName;
-        SaveSystem.SaveCustomFolders(Folders);
+        SaveSystem.SaveProjectSettings(Folders);
         return Folders.Count-1;
     }
 
@@ -91,6 +98,6 @@ public class FolderSystem
         var index = ReverseIndex(OldFolderName);
         Folders[index] = NewFolderName;
 
-        SaveSystem.SaveCustomFolders(Folders);
+        SaveSystem.SaveProjectSettings(Folders);
     }
 }

@@ -7,7 +7,7 @@ using DLS.SaveSystem.Serializable.SerializationHelper;
 using UnityEngine;
 using Newtonsoft.Json;
 
-public static class SaveSystem
+public static partial class SaveSystem
 {
     public static string ActiveProjectName { get; set; } = "Untitled";
     public static string FileExtension { get; set; } = ".json";
@@ -22,15 +22,11 @@ public static class SaveSystem
 
     public static string SaveDataDirectoryPath => Path.Combine(Application.persistentDataPath, "SaveData");
 
-    static string WireLayoutPath => Path.Combine(ChipPath, "WireLayout");
 
     static string EEPROMSaveFilePath => Path.Combine(ActiveProjectPath, "EEPROMContents.json");
 
     public static string GetPathToChip(string chipName, string ExtraPath = "") =>
-        Path.Combine( ChipPath + ExtraPath, chipName + FileExtension);
-
-    public static string GetPathToWireSaveFile(string saveFileName, string ExatraPath = "") =>
-        Path.Combine(WireLayoutPath + ExatraPath, saveFileName + FileExtension);
+        Path.Combine(ChipPath + ExtraPath, chipName + FileExtension);
 
 
     public static void Init()
@@ -38,9 +34,8 @@ public static class SaveSystem
         // Create save directory (if doesn't exist already)
         Directory.CreateDirectory(ActiveProjectPath);
         Directory.CreateDirectory(ChipPath);
-        Directory.CreateDirectory(WireLayoutPath);
-        FolderLoader.CreateDefault(ProjectSettingsPath);
-        UpdateSaveData();
+        ProjectSettings.CreateDefault(ProjectSettingsPath);
+        UpdateProject();
     }
 
     public static FileInfo[] GetChipSavePaths()
@@ -104,14 +99,14 @@ public static class SaveSystem
     }
 
 
-    public static Dictionary<int, string> LoadCustomFolders()
+    public static Dictionary<int, string> LoadProjectSettings()
     {
-        return FolderLoader.LoadCustomFolders(ProjectSettingsPath);
+        return ProjectSettings.LoadProjectSettings(ProjectSettingsPath);
     }
 
-    public static void SaveCustomFolders(Dictionary<int, string> folders)
+    public static void SaveProjectSettings(Dictionary<int, string> folders)
     {
-        FolderLoader.SaveCustomFolders(ProjectSettingsPath, folders);
+        ProjectSettings.SaveProjectSettings(ProjectSettingsPath, folders);
     }
 
 
@@ -134,28 +129,18 @@ public static class SaveSystem
 
     public static string SerializeChip(SavedChip chipSave) =>
         JsonConvert.SerializeObject(chipSave, Formatting.Indented, ColorConverterHEX.GenerateSerializerSettings());
-    private static string SerializeWireLayout(SavedWireLayout wireLayout) =>
-        JsonConvert.SerializeObject(wireLayout, Formatting.Indented, ColorConverterHEX.GenerateSerializerSettings());
-
-
 
     public static SavedChip ReadChip(string chipName) =>
         DeserializeChip((ReadFile(GetPathToChip(chipName))));
 
-    public static SavedWireLayout ReadWireLayout(string wireFile) =>
-        JsonUtility.FromJson<SavedWireLayout>(ReadFile(GetPathToWireSaveFile(wireFile)));
+    public static void DeleteChip(string chipName) => File.Delete(GetPathToChip(chipName));
 
 
     public static void SaveChip(string chipName, SavedChip saveString, string ExatraPath = "") =>
-        WriteFile(GetPathToChip(chipName, ExatraPath), SerializeChip(saveString) );
-
-    //Legacy function hera to read old save format
-    public static void SaveWireLayout(string chipName, SavedWireLayout wireLayout, string ExatraPath = "") =>
-        WriteFile(GetPathToWireSaveFile(chipName, ExatraPath), SerializeWireLayout(wireLayout));
+        WriteFile(GetPathToChip(chipName, ExatraPath), SerializeChip(saveString));
 
 
-
-    public static void WriteFoldersFile(string FolderFileStr) => WriteFile(ProjectSettingsPath, FolderFileStr);
+    public static void WriteProjectSettings(string projectSettings) => WriteFile(ProjectSettingsPath, projectSettings);
 
 
     public static string[] GetProjectNames()
@@ -201,12 +186,19 @@ public static class SaveSystem
                 "Sebastian Lague"), true);
     }
 
+    public static void ResetToDefaultSettings()
+    {
+        ChipFolder = "Chips";
+        FileExtension = ".json";
+    }
 
-    public static void UpdateSaveData()
+
+    public static void UpdateProject()
     {
         FileExtension = ".txt";
         ChipFolder = "";
         FileInfo[] chipPaths = GetChipSavePaths();
+
 
         // Read saved chips from file
         foreach (var chipPat in chipPaths)
@@ -216,16 +208,29 @@ public static class SaveSystem
             if (chipName.Equals(ProjectSettingsFileName)) continue;
 
             var chipSaveString = ReadFile(chipPath);
+
             var updateSaveFile = SaveCompatibility.FixSaveCompatibility(chipSaveString, chipName);
-            ChipFolder = "Chips";
-            FileExtension = ".json";
-            if (SaveCompatibility.CanWriteFile)
-                SaveChip(chipName, updateSaveFile);
+
+            if (!SaveCompatibility.CanWriteFile) continue;
+            SaveChip(chipName, updateSaveFile);
+            File.Delete(chipPath);
+            File.Delete(Legacy.GetPathToWireSaveFile(chipName));
         }
 
-        foreach (var oldChipFile in chipPaths)
-            File.Delete(oldChipFile.FullName);
+        if (Directory.Exists(Legacy.WireLayoutPath))
+        {
+            try
+            {
+                Directory.Delete(Legacy.WireLayoutPath);
+            }
+            catch (Exception e)
+            {
+                DLSLogger.LogWarning(e.Message);
+            }
+
+        }
 
 
+        ResetToDefaultSettings();
     }
 }

@@ -12,70 +12,28 @@ namespace Modules.Save_System.Save
 {
     public static class ChipSaver
     {
-        const bool usePrettyPrint = true;
-
         public static void Save(ChipEditor chipEditor)
         {
             ChipInstanceHolder chipInstanceHolder = new ChipInstanceHolder(chipEditor);
 
             var compositeChip = new SavedChip(chipInstanceHolder);
-            var WireLayout = new SavedWireLayout(chipInstanceHolder);
 
             // Write to file
             SaveSystem.SaveChip(compositeChip.Info.name, compositeChip);
-            SaveSystem.SaveWireLayout(compositeChip.Info.name,WireLayout);
+
         }
 
         public static void Export(Chip exportedChip, string destinationPath)
         {
-            Dictionary<int, string> chipsToExport =
-                FindChildrenChips(exportedChip.Name);
-
-            using StreamWriter writer = new StreamWriter(destinationPath);
-            writer.WriteLine(chipsToExport.Count);
-
-            foreach (KeyValuePair<int, string> chip in chipsToExport.OrderBy(x => x.Key))
-            {
-                string chipSaveFile = SaveSystem.GetPathToChip(chip.Value);
-                string chipWireSaveFile = SaveSystem.GetPathToWireSaveFile(chip.Value);
-
-                using StreamReader reader = new StreamReader(chipSaveFile);
-                string saveString = reader.ReadToEnd();
-
-                using StreamReader wireReader = new StreamReader(chipWireSaveFile);
-                string wiringSaveString = wireReader.ReadToEnd();
-
-                writer.WriteLine(chip.Value);
-                writer.WriteLine(saveString.Split('\n').Length);
-                writer.WriteLine(wiringSaveString.Split('\n').Length);
-                writer.WriteLine(saveString);
-                writer.WriteLine(wiringSaveString);
-            }
+            //TODO: this need to be redone
         }
 
-        static Dictionary<int, string> FindChildrenChips(string chipName)
+        static Dictionary<string, string> FindChildrenChips(string chipName)
         {
-            Dictionary<int, string> childrenChips = new Dictionary<int, string>();
-
-            Manager manager = GameObject.FindObjectOfType<Manager>();
-            SavedChip[] allChips = SaveSystem.GetAllSavedChips();
-            SavedChip currentChip = Array.Find(allChips, c => c.Info.name == chipName);
-            if (currentChip == null) return childrenChips;
-
-            childrenChips.Add(currentChip.Info.creationIndex, chipName);
-
-            foreach (SavedComponentChip scc in currentChip.savedComponentChips)
-            {
-                if (Array.FindIndex(manager.SpawnableBuiltinChips,
-                        c => c.Name == scc.chipName) != -1) continue;
-
-                foreach (var chip in FindChildrenChips(scc.chipName).Where(chip => !childrenChips.ContainsKey(chip.Key)))
-                {
-                    childrenChips.Add(chip.Key, chip.Value);
-                }
-            }
-
+            //TODO: this need to be redone
+            Dictionary<string, string> childrenChips = new Dictionary<string, string>();
             return childrenChips;
+
         }
 
         public static void Update(ChipEditor chipEditor, Chip chip)
@@ -137,41 +95,10 @@ namespace Modules.Save_System.Save
             return true;
         }
 
-        public static bool IsSignalSafeToDelete(string chipName, string signalName)
-        {
-            SavedChip[] savedChips = SaveSystem.GetAllSavedChips();
-            foreach (var t in savedChips)
-            {
-                if (!t.ChipDependencies.Contains(chipName)) continue;
-                SavedChip parentChip = t;
-                int currentChipIndex = Array.FindIndex(parentChip.savedComponentChips,
-                    scc => scc.chipName == chipName);
-                SavedComponentChip currentChip =
-                    parentChip.savedComponentChips[currentChipIndex];
-                int currentSignalIndex = Array.FindIndex(
-                    currentChip.outputPins, name => name.name == signalName);
-
-                if (Array.Find(currentChip.inputPins,
-                        pin => pin.name == signalName && pin.parentChipIndex >= 0) != null)
-                {
-                    return false;
-                }
-                else if (currentSignalIndex >= 0 &&
-                         parentChip.savedComponentChips.Any(scc => scc.inputPins.Any(pin =>
-                             pin.parentChipIndex == currentChipIndex
-                             && pin.parentChipOutputIndex == currentSignalIndex)))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
 
         public static void Delete(string chipName)
         {
-            File.Delete(SaveSystem.GetPathToChip(chipName));
-            File.Delete(SaveSystem.GetPathToWireSaveFile(chipName));
+            SaveSystem.DeleteChip(chipName);
         }
 
         public static void Rename(string oldChipName, string newChipName)
@@ -213,20 +140,7 @@ namespace Modules.Save_System.Save
                 SaveSystem.SaveChip(savedChip.Info.name, savedChip);
             }
 
-            // Rename wire layer file
-            string oldWireSaveFile = SaveSystem.GetPathToWireSaveFile(oldChipName);
-            string newWireSaveFile = SaveSystem.GetPathToWireSaveFile(newChipName);
-            try
-            {
-                System.IO.File.Move(oldWireSaveFile, newWireSaveFile);
-            }
-            catch (Exception e)
-            {
-                UnityEngine.Debug.LogError(e);
-            }
-
-            // Delete old chip save file
-            File.Delete(SaveSystem.GetPathToChip(oldChipName));
+            SaveSystem.DeleteChip(oldChipName);
         }
     }
 }
