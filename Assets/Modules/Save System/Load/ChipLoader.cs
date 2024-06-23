@@ -107,8 +107,7 @@ public static class ChipLoader
         return null;
     }
 
-    static ChipInstanceHolder LoadChipWithWires(SavedChip chipToLoad, Dictionary<string, Chip> loadedChips,
-        ChipEditor chipEditor = null)
+    static ChipInstanceHolder LoadChipWithWires(SavedChip chipToLoad, Dictionary<string, Chip> loadedChips,ChipEditor chipEditor = null)
     {
         if (chipEditor is null)
             chipEditor = Manager.ActiveEditor;
@@ -263,7 +262,7 @@ public static class ChipLoader
             var wireDisplay = loadedChipData.wires[wireIndex].GetComponentInChildren<WireDisplay>();
 
             //The null check for 'wire.ThemeName' is redundant here since it's already handled in the method
-            wireDisplay.SetTheme(wire.ColourThemeName);
+            wireDisplay.SetThemeByName(wire.ColourThemeName);
         }
 
         foreach (var wire in loadedChipData.wires)

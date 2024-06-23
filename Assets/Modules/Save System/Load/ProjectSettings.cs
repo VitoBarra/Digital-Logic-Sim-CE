@@ -14,17 +14,16 @@ public static class ProjectSettings
     }
 
     // TODO: implement the project Settings
-    public static void SaveProjectSettings(string path, IDictionary<int, string> folders)
+    public static void SaveProjectSettings(IDictionary<int, string> folders)
     {
         string jsonString = JsonConvert.SerializeObject(folders, Formatting.Indented);
-        SaveSystem.WriteFile(path, jsonString);
+        SaveSystem.WriteProjectSettings(jsonString);
     }
 
-    public static void CreateDefault(string path)
+
+
+    public static void CreateDefault()
     {
-        if (File.Exists(path)) return;
-
-        SaveProjectSettings(path, FolderSystem.DefaultFolder);
-
+        SaveProjectSettings(FolderSystem.DefaultFolder);
     }
 }

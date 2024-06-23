@@ -31,7 +31,7 @@ namespace Interaction.Signal
 
             foreach (var signalDisplay in signalDisplays)
             {
-                signalDisplay.SetTheme(ThemeManager.DefaultTheme);
+                signalDisplay.CurrentTheme= ThemeManager.DefaultTheme;
             }
         }
 

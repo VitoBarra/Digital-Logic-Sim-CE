@@ -7,6 +7,8 @@ namespace DLS.Core.Simulation
 {
     public class Simulation : MonoBehaviour
     {
+        public static bool IsSimulationActive =>   instance.active;
+
         public event Action<bool> OnSimulationToggle;
         public static Simulation instance;
 
@@ -14,7 +16,8 @@ namespace DLS.Core.Simulation
 
         InputSignal[] inputSignals;
         ChipEditor chipEditor => Manager.ActiveEditor;
-        public bool active = false;
+
+        private bool active = false;
 
         public float minStepTime = 0.075f;
         float lastStepTime;

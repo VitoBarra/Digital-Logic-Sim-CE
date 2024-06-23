@@ -34,7 +34,7 @@ public static partial class SaveSystem
         // Create save directory (if doesn't exist already)
         Directory.CreateDirectory(ActiveProjectPath);
         Directory.CreateDirectory(ChipPath);
-        ProjectSettings.CreateDefault(ProjectSettingsPath);
+        ProjectSettings.CreateDefault();
         UpdateProject();
     }
 
@@ -106,7 +106,7 @@ public static partial class SaveSystem
 
     public static void SaveProjectSettings(Dictionary<int, string> folders)
     {
-        ProjectSettings.SaveProjectSettings(ProjectSettingsPath, folders);
+        ProjectSettings.SaveProjectSettings(folders);
     }
 
 
@@ -161,6 +161,7 @@ public static partial class SaveSystem
         return savedProjectPaths;
     }
 
+    //TODO: check this on old Installation
     public static void MigrateSaves()
     {
         //old appdata path is at ../../Sebastian Lague/Digital Logic Sim

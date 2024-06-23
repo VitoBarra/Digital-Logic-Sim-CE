@@ -11,7 +11,6 @@ public class PinDisplay : MonoBehaviour
     // Appearance
     private PinInteractionPalette InteractionPalette;
 
-    bool IsSimActive => Simulation.instance.active;
     public static float radius => ScalingManager.PinSize;
 
     public static float IteractionFactor => 1.1f;

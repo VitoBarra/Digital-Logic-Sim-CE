@@ -15,10 +15,7 @@ public class ChipEditor : MonoBehaviour
     public PinAndWireInteraction pinAndWireInteraction;
 
     public List<InputSignal> InputSignals => inputsEditor.GetAllSignals().Cast<InputSignal>().ToList();
-    public List<OutputSignal> OutputSignals=>outputsEditor.GetAllSignals().Cast<OutputSignal>().ToList();
-
-
-
+    public List<OutputSignal> OutputSignals => outputsEditor.GetAllSignals().Cast<OutputSignal>().ToList();
 
 
     public ChipInfo CurrentChip;

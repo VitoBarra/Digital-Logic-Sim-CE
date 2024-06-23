@@ -28,6 +28,6 @@ public class SavedWire
 
         anchorPoints = wire.anchorPoints.ToArray();
 
-        ColourThemeName = wire.GetComponentInChildren<WireDisplay>().GetCurrentThemeName();
+        ColourThemeName = wire.GetComponentInChildren<WireDisplay>().CurrentTheme.Name;
     }
 }
