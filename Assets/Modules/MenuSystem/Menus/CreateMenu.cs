@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Modules.ProjectSettings;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -43,7 +44,7 @@ public class CreateMenu : MonoBehaviour
     public void SelectFolder()
     {
         string DropDownTextValue = folderDropdown.options[folderDropdown.value].text;
-        Manager.ActiveEditor.CurrentChip.FolderIndex = FolderSystem.ReverseIndex(DropDownTextValue);
+        Manager.ActiveEditor.CurrentChip.FolderIndex = ProjectSettings.FolderSystem.ReverseIndex(DropDownTextValue);
     }
 
     public void ColourSliderChanged()
@@ -96,7 +97,7 @@ public class CreateMenu : MonoBehaviour
 
     public void FinishCreation()
     {
-        Manager.ActiveEditor.CurrentChip.FolderIndex = FolderSystem.ReverseIndex(folderDropdown.options[folderDropdown.value].text);
+        Manager.ActiveEditor.CurrentChip.FolderIndex = ProjectSettings.FolderSystem.ReverseIndex(folderDropdown.options[folderDropdown.value].text);
         Manager.ActiveEditor.CurrentChip.scale = ScalingManager.Scale;
         Manager.instance.SaveAndPackageChip();
     }

@@ -7,6 +7,7 @@ using System.Dynamic;
 using System.Linq;
 using DLS.ChipData;
 using DLS.SaveSystem.Serializable.SerializationHelper;
+using Modules.ProjectSettings;
 using Color = UnityEngine.Color;
 using ColorConverter = DLS.SaveSystem.Serializable.SerializationHelper.ColorConverter;
 using Debug = UnityEngine.Debug;
@@ -222,7 +223,7 @@ public class SaveCompatibility : MonoBehaviour
         var NameColour = JsonConvert.DeserializeObject<JObject>(OldData.Property("NameColour").Value.ToString());
         int folder = OldData.Property("folderName") == null
             ? -1
-            : FolderSystem.ReverseIndex(OldData.Property("folderName").Value.ToString());
+            : ProjectSettings.FolderSystem.ReverseIndex(OldData.Property("folderName").Value.ToString());
         float scale = OldData.Property("scale") == null ? 1 : OldData.Property("scale").Value.ToObject<float>();
 
         var NewChipData = new ChipInfov39()
@@ -293,87 +294,6 @@ public class SaveCompatibility : MonoBehaviour
         DirtyBit = true;
     }
 
-    // in this region are the methods that convert the save file to the new official format
-
-    #region ToOfficial
-
-    private static void From039ToOfficial(ref JObject JChipSave, SavedWireLayout wireSaveLayout)
-    {
-        ChipDescription NewSaveFormat = new ChipDescription();
-        var OldData = JChipSave.Property("Data").Value as JObject;
-
-        var Colour = JsonConvert.DeserializeObject<JObject>(OldData.Property("Colour").Value.ToString())
-            .ToObject<Color>();
-        var ColorHex = "#" + ColorUtility.ToHtmlStringRGB(Colour);
-        int folderIndex = OldData.Property("folderName") == null
-            ? -1
-            : FolderSystem.ReverseIndex(OldData.Property("folderName").Value.ToString());
-        float scale = OldData.Property("scale") == null ? 1 : OldData.Property("scale").Value.ToObject<float>();
-
-
-        var SavedconpArray = JChipSave.Property("savedComponentChips").Value as JArray;
-        List<SavedComponentChip> subComponentOld = new List<SavedComponentChip>();
-
-        foreach (var con in SavedconpArray)
-        {
-            if (con is not JObject r) continue;
-            var scc = new SavedComponentChip();
-
-            var InPinLs = new List<SavedInputPin>();
-            var inpins = r.Property("inputPins").Value as JArray;
-            foreach (var jTokeninpin in inpins)
-            {
-                if (jTokeninpin is not JObject jObjectin) continue;
-                var e = new SavedInputPin();
-
-                e.name = jObjectin.Property("name").HasValues ? jObjectin.Property("name").Value.ToString() : "";
-                e.parentChipIndex = jObjectin.Property("parentChipIndex").Value.ToObject<int>();
-                e.parentChipOutputIndex = jObjectin.Property("parentChipOutputIndex").Value.ToObject<int>();
-                e.isCylic = jObjectin.Property("isCylic").Value.ToObject<bool>();
-                e.wireType = jObjectin.Property("wireType").Value.ToObject<Pin.WireType>();
-                InPinLs.Add(jTokeninpin.ToObject<SavedInputPin>());
-            }
-
-            scc.inputPins = InPinLs.ToArray();
-
-
-            var outPinLs = new List<SavedOutputPin>();
-            var outpins = r.Property("outputPins").Value as JArray;
-
-            foreach (var jTokenoupin in outpins)
-            {
-                if (jTokenoupin is not JObject jObjectout) continue;
-
-                var savedOut = new SavedOutputPin
-                {
-                    name = jObjectout.Property("name").HasValues ? jObjectout.Property("name").Value.ToString() : "",
-                    wireType = jObjectout.Property("wireType").Value.ToObject<Pin.WireType>()
-                };
-                outPinLs.Add(savedOut);
-            }
-
-            scc.outputPins = outPinLs.ToArray();
-
-
-            scc.chipName = r.Property("chipName").Value.ToString();
-            scc.posX = r.Property("posX").Value.ToObject<float>();
-            scc.posY = r.Property("posY").Value.ToObject<float>();
-            subComponentOld.Add(scc);
-        }
-
-        NewSaveFormat.Version = "CE-0.40";
-        NewSaveFormat.Name = OldData.Property("name").Value.ToString();
-        NewSaveFormat.Colour = ColorHex;
-        NewSaveFormat.FolderIndex = folderIndex;
-        NewSaveFormat.Scale = scale;
-        GenerateSubComponent(NewSaveFormat, subComponentOld.ToArray());
-        GenerateConnection(NewSaveFormat, subComponentOld.ToArray(), wireSaveLayout);
-        NewSaveFormat.ChipDependencies = JChipSave.Property("ChipDependecies").Value.ToObject<string[]>()
-            .Where(x => !(x.Equals("SIGNAL OUT") || x.Equals("SIGNAL IN"))).ToArray();
-
-        JChipSave = JsonConvert.DeserializeObject(JsonConvert.SerializeObject(NewSaveFormat)) as JObject;
-        DirtyBit = true;
-    }
 
 
     private static void GenerateConnection(ChipDescription chipDescription, SavedComponentChip[] subComponentsOld,
@@ -500,8 +420,6 @@ public class SaveCompatibility : MonoBehaviour
         chipDescription.SubChips = chipInstanceData.ToArray();
         chipDescription.OutputPins = outputSignal.ToArray();
     }
-
-    #endregion
 
     #endregion
 

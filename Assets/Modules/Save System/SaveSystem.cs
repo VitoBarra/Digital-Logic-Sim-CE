@@ -4,6 +4,8 @@ using System.IO;
 using System.Collections.Generic;
 using System.Xml.Linq;
 using DLS.SaveSystem.Serializable.SerializationHelper;
+using Modules.ProjectSettings;
+using Modules.ProjectSettings.Serializable;
 using UnityEngine;
 using Newtonsoft.Json;
 
@@ -34,7 +36,8 @@ public static partial class SaveSystem
         // Create save directory (if doesn't exist already)
         Directory.CreateDirectory(ActiveProjectPath);
         Directory.CreateDirectory(ChipPath);
-        ProjectSettings.CreateDefault();
+        if (!File.Exists(ProjectSettingsPath))
+            ProjectSettings.CreateDefault();
         UpdateProject();
     }
 
@@ -98,18 +101,6 @@ public static partial class SaveSystem
         WriteFile(EEPROMSaveFilePath, jsonStr);
     }
 
-
-    public static Dictionary<int, string> LoadProjectSettings()
-    {
-        return ProjectSettings.LoadProjectSettings(ProjectSettingsPath);
-    }
-
-    public static void SaveProjectSettings(Dictionary<int, string> folders)
-    {
-        ProjectSettings.SaveProjectSettings(folders);
-    }
-
-
     public static string ReadFile(string path)
     {
         using StreamReader reader = new StreamReader(path);
@@ -122,6 +113,22 @@ public static partial class SaveSystem
         Directory.CreateDirectory(FilePath.Directory.ToString());
         File.WriteAllText(path, content);
     }
+
+    private static string SerializeProjectSettings(SavedProjectSettings settings) => JsonConvert.SerializeObject(settings, Formatting.Indented);
+    private static SavedProjectSettings DeserializeProjectSettings(string settingsStr) => JsonConvert.DeserializeObject<SavedProjectSettings>(settingsStr);
+
+    public static SavedProjectSettings LoadProjectSettings()
+    {
+        return Modules.ProjectSettings.ProjectSettings.LoadProjectSettings(ProjectSettingsPath);
+    }
+
+    public static void SaveProjectSettings(Dictionary<int, string> folders)
+    {
+        Modules.ProjectSettings.ProjectSettings.SaveProjectSettings(folders);
+    }
+
+
+
 
 
     public static SavedChip DeserializeChip(string ChipSave) =>

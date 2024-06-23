@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Modules.ProjectSettings;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using static Modules.ProjectSettings.ProjectSettings.FolderSystem;
 
 public class ChipBarUI : MonoBehaviour
 {
@@ -89,7 +91,7 @@ public class ChipBarUI : MonoBehaviour
 
         FolderDropdown.options.Clear();
 
-        foreach (var kv in FolderSystem.Enum)
+        foreach (var kv in ProjectSettings.FolderSystem.Enum)
             AddFolderView(kv.Key, kv.Key > 2 ? UserSprite : BuiltInSprite);
 
         ReloadChipButton();
@@ -146,7 +148,7 @@ public class ChipBarUI : MonoBehaviour
                 int index = (int)DefaultKays.Comp;
                 if (chip is CustomChip customChip)
                 {
-                    if (FolderSystem.ContainsIndex(customChip.FolderIndex))
+                    if (ProjectSettings.FolderSystem.ContainsIndex(customChip.FolderIndex))
                         index = customChip.FolderIndex;
                 }
 
@@ -206,7 +208,7 @@ public class ChipBarUI : MonoBehaviour
             return;
         }
 
-        CurrentFolderIndex = FolderSystem.ReverseIndex(FolderDropdown.options[FolderDropdown.value].text);
+        CurrentFolderIndex = ProjectSettings.FolderSystem.ReverseIndex(FolderDropdown.options[FolderDropdown.value].text);
 
         foreach (var chipHolder in chipButtonHolders)
             chipHolder.Value.Holder.gameObject.SetActive(false);
@@ -220,7 +222,7 @@ public class ChipBarUI : MonoBehaviour
 
     public void AddFolderView(int FolderIndex, Sprite sprite)
     {
-        var folderName = FolderSystem.GetFolderName(FolderIndex);
+        var folderName = ProjectSettings.FolderSystem.GetFolderName(FolderIndex);
         TMP_Dropdown.OptionData newOption = new TMP_Dropdown.OptionData(folderName, sprite);
 
 

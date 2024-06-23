@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Core;
+using Modules.ProjectSettings;
 using Modules.Save_System.Save;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -56,7 +57,7 @@ public class Manager : MonoBehaviour
     {
         instance = this;
         SaveSystem.Init();
-        FolderSystem.Init();
+        ProjectSettings.FolderSystem.Init();
     }
 
     void Start()
@@ -224,7 +225,7 @@ public class Manager : MonoBehaviour
         }
         else
         {
-            FolderSystem.Reset();
+            ProjectSettings.FolderSystem.Reset();
             UnityEngine.SceneManagement.SceneManager.LoadScene(0);
         }
     }

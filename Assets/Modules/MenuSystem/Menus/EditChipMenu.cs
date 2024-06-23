@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using System;
 using SFB;
 using System.Linq;
+using Modules.ProjectSettings;
 using Modules.Save_System.Save;
 
 public class EditChipMenu : MonoBehaviour
@@ -52,7 +53,7 @@ public class EditChipMenu : MonoBehaviour
         if (currentChip is not CustomChip customChip) return;
         for (int i = 0; i < folderDropdown.options.Count; i++)
         {
-            if (!FolderSystem.CompareValue(customChip.FolderIndex, folderDropdown.options[i].text)) continue;
+            if (!ProjectSettings.FolderSystem.CompareValue(customChip.FolderIndex, folderDropdown.options[i].text)) continue;
             folderDropdown.value = i;
             break;
         }
@@ -132,7 +133,7 @@ public class EditChipMenu : MonoBehaviour
         if (currentChip is CustomChip customChip)
         {
 
-            var index = FolderSystem.ReverseIndex(CurrentFolderText);
+            var index = ProjectSettings.FolderSystem.ReverseIndex(CurrentFolderText);
             if (index != customChip.FolderIndex)
             {
                 Manager.instance.ChangeFolderToChip(customChip.name, index);
