@@ -95,7 +95,7 @@ public class SignalPropertiesMenu : MonoBehaviour
     private void OnGroupInputValueChanged(string newValue)
     {
         if (SignalInteraction.WireType != Pin.WireType.Simple) return;
-        InputFieldMaxValue(GroupSizeField, newValue, SignalInteraction.MaxGroupSize);
+        InputFieldMaxValue(GroupSizeField, newValue, 1,SignalInteraction.MaxGroupSize);
     }
 
 
@@ -104,13 +104,14 @@ public class SignalPropertiesMenu : MonoBehaviour
         if (SignalInteraction.WireType == Pin.WireType.Simple) return;
 
         var maxValue = Math.Pow(2, SignalInteraction.Signals[0].ChipSignal.State.Count) - 1;
-        InputFieldMaxValue(BusValueField, newValue, maxValue);
+        var minValue = 0;
+        InputFieldMaxValue(BusValueField, newValue, minValue, maxValue);
     }
 
-    private void InputFieldMaxValue(TMP_InputField inputField, string newValue, double maxValue)
+    private void InputFieldMaxValue(TMP_InputField inputField, string newValue, double minValue, double maxValue)
     {
-        if (!int.TryParse(newValue, out var intValue) || intValue < 0)
-            inputField.text = 0.ToString();
+        if (!int.TryParse(newValue, out var intValue) || intValue < minValue)
+            inputField.text = minValue.ToString();
         else if (intValue > maxValue)
             inputField.text = maxValue.ToString();
     }
@@ -121,6 +122,7 @@ public class SignalPropertiesMenu : MonoBehaviour
         propertiesUI.gameObject.SetActive(true);
         SignalInteraction = signalInteraction;
         StartWireType = signalInteraction.WireType;
+        EnableDeleteCommand(); //test
 
         nameField.text = SignalInteraction.SignalName;
         nameField.caretPosition = nameField.text.Length;

@@ -110,6 +110,7 @@ public class MenuManager : MonoBehaviour
 
         outsideMenuArea.SetActive(false);
         SetActiveInteraction(true);
+
     }
 
     private void SetActiveInteraction(bool IsActive)
@@ -198,7 +199,7 @@ public class MenuManager : MonoBehaviour
 
     public void RegisterFinalizer(MenuType menuType, Action action)
     {
-        Menus[menuType].RegisterFinalizer(action);
+        Menus[menuType].RegisterOnUIClose(action);
     }
 
     private void OnDestroy()

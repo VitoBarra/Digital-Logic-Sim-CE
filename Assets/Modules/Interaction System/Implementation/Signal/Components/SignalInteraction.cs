@@ -58,9 +58,9 @@ namespace Interaction.Signal
         public Pin.WireType WireType;
         public bool DisplayEnabled;
 
-        public Vector3 GroupCenter => (Signals.ChipSignals[0].transform.position +
-                                       Signals.ChipSignals[^1].transform.position) / 2;
+        public Vector3 GroupCenter => CalculateCenter(Signals.ChipSignals[0].transform.position,Signals.ChipSignals[^1].transform.position);
 
+        public static Vector2 CalculateCenter(Vector2 a ,Vector2 b ) => (a + b) / 2;
 
         private void Awake()
         {
@@ -314,15 +314,15 @@ namespace Interaction.Signal
         public List<SignalReferenceHolder> SetGroupSize(int desiredGroupSize)
         {
             var list = new List<SignalReferenceHolder>();
-            var e = desiredGroupSize - GroupSize;
-            switch (e)
+            var grupSizeDif = desiredGroupSize - GroupSize;
+            switch (grupSizeDif)
             {
                 case < 0:
-                    for (var i = 0; i < -e; i++)
+                    for (var i = 0; i < -grupSizeDif; i++)
                         RemoveSignal();
                     break;
                 case > 0:
-                    for (var i = 0; i < e; i++)
+                    for (var i = 0; i < grupSizeDif; i++)
                         list.Add(AddSignal());
 
                     break;
