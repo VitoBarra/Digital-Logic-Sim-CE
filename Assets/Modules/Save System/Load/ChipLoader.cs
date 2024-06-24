@@ -107,6 +107,25 @@ public static class ChipLoader
         return null;
     }
 
+
+    private static Dictionary<int,float> CalculateSignalGroupCenter(SavedChip chipToLoad)
+    {
+        var signalGroupCenter = new Dictionary<int,float>();
+
+        var signal = chipToLoad.savedComponentChips.Where(x => x.chipName.Equals("SIGNAL IN")|| x.chipName.Equals("SIGNAL OUT")).ToList();
+
+        foreach (var id in signal.Select(x => x.signalGroupId).Distinct())
+        {
+            var signalGroup = signal.Where(x => x.signalGroupId == id).Select(x => x.posY).ToList();
+            var min = signalGroup.Min();
+            var max = signalGroup.Max();
+            signalGroupCenter.Add(id, (min + max) / 2);
+        }
+
+
+        return signalGroupCenter;
+    }
+
     static ChipInstanceHolder LoadChipWithWires(SavedChip chipToLoad, Dictionary<string, Chip> loadedChips,ChipEditor chipEditor = null)
     {
         if (chipEditor is null)
@@ -117,6 +136,7 @@ public static class ChipLoader
         loadedChipData.componentChips = new Chip[numComponents];
         loadedChipData.Info = chipToLoad.Info;
         List<Wire> loadedWires = new List<Wire>();
+
 
         // Spawn component chips (the chips used to create this chip)
         // These will have been loaded already, and stored in the
@@ -193,6 +213,11 @@ public static class ChipLoader
         }
 
         loadedChipData.wires = loadedWires.ToArray();
+
+
+
+        chipEditor.SetSignalCenter(CalculateSignalGroupCenter(chipToLoad));
+
 
         return loadedChipData;
     }

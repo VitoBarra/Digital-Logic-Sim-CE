@@ -59,11 +59,8 @@ public class ChipEditor : MonoBehaviour
             {
                 Palette.VoltageColour theme = ThemeManager.instance.GetTheme(subComponentDescriptor.ThemeName);
                 signal.GroupId = subComponentDescriptor.signalGroupId;
-                signal.isInGroup = subComponentDescriptor.isInGroup;
                 switch (signal)
                 {
-
-
                     case InputSignal input:
                         input.wireType = input.outputPins[0].wireType;
                         return inputsEditor.LoadSignal(input, pos.y,theme);
@@ -83,5 +80,12 @@ public class ChipEditor : MonoBehaviour
     public Wire LoadWire(Pin connectedPin, Pin pin)
     {
         return pinAndWireInteraction.CreateAndLoadWire(connectedPin, pin);
+    }
+
+    public void SetSignalCenter(Dictionary<int, float> signalGroupCenter)
+    {
+
+        inputsEditor.SetSignalCenter(signalGroupCenter);
+        outputsEditor.SetSignalCenter(signalGroupCenter);
     }
 }

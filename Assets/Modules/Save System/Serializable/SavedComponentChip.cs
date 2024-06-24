@@ -14,7 +14,6 @@ public class SavedComponentChip {
 	public SavedOutputPin[] outputPins;
 
 	public int signalGroupId =-1;
-	public bool isInGroup = false;
 
 	public string ThemeName;
 
@@ -31,7 +30,6 @@ public class SavedComponentChip {
         if (chip is ChipSignal s)
         {
 	        signalGroupId = s.GroupId;
-	        isInGroup = s.isInGroup;
 	        ThemeName = s.GetComponentInChildren<SignalDisplay>().CurrentTheme.Name;
         }
 

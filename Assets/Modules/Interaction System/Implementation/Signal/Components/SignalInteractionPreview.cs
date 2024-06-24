@@ -53,7 +53,7 @@ namespace Interaction.Signal
 
         public void AdjustYPosition()
         {
-            PreviewSignal.MoveCenterYPosition(InputHelper.MouseWorldPos.y);
+            PreviewSignal.SetGroupCenter(InputHelper.MouseWorldPos.y);
         }
 
         public void SetGroupSize(int desiredGroupSize)

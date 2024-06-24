@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Interaction.Signal.Display;
 using UnityEngine;
@@ -26,11 +27,13 @@ namespace Interaction.Signal
     {
         private bool ValidCache = false;
 
-        public List<ChipSignal> ChipSignals;
+        public readonly List<ChipSignal> ChipSignals;
+        private Action<Chip> OnDeleteSignal;
 
-        public SignalReferenceHolderList(int groupSize) : base(groupSize)
+        public SignalReferenceHolderList(int groupSize, Action<Chip> onDeleteSignal) : base(groupSize)
         {
             ChipSignals = new List<ChipSignal>(groupSize);
+            OnDeleteSignal = onDeleteSignal;
         }
 
 
@@ -48,7 +51,7 @@ namespace Interaction.Signal
                 SRH.HandleDisplay.RegisterToHandleGroup(handler);
             }
             
-            AddH(SRH);
+            AddSignalReference(SRH);
 
             return SRH;
         }
@@ -56,33 +59,45 @@ namespace Interaction.Signal
         public void RemoveSignals()
         {
             var index = Count - 1;
-            var e = this[index];
+            var signalReferenceHolder = this[index];
             foreach (var display in this.Select(x => x.HandleDisplay))
             {
-                display.UnregisterToHandleGroup(e.HandleEvent);
+                display.UnregisterToHandleGroup(signalReferenceHolder.HandleEvent);
             }
 
             foreach (var handler in this.Select(x => x.HandleEvent))
             {
-                e.HandleDisplay.UnregisterToHandleGroup(handler);
+                signalReferenceHolder.HandleDisplay.UnregisterToHandleGroup(handler);
             }
 
-            RemoveAtH(index);
+            RemoveAtIndex(index);
         }
 
 
-        private void AddH(SignalReferenceHolder h)
+        private void AddSignalReference(SignalReferenceHolder signalReferenceHolder)
         {
-            Add(h);
-            ChipSignals.Add(h.ChipSignal);
+            Add(signalReferenceHolder);
+            ChipSignals.Add(signalReferenceHolder.ChipSignal);
         }
 
-        private void RemoveAtH(int index)
+        private void RemoveAtIndex(int index)
         {
-            var e = this[index];
-            ChipSignals.Remove(e.ChipSignal);
-            GameObject.Destroy(e.ChipSignal.gameObject);
+            var signalReferenceHolder = this[index];
+            ChipSignals.Remove(signalReferenceHolder.ChipSignal);
+            OnDeleteSignal?.Invoke(signalReferenceHolder.ChipSignal);
+            GameObject.Destroy(signalReferenceHolder.ChipSignal.gameObject);
             RemoveAt(index);
+        }
+
+        public void ClearSignal()
+        {
+            foreach (var signal in ChipSignals)
+            {
+                OnDeleteSignal?.Invoke(signal);
+                GameObject.Destroy(signal.gameObject);
+            }
+            OnDeleteSignal = null;
+            Clear();
         }
     }
 }

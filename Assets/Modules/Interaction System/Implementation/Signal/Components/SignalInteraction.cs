@@ -45,8 +45,7 @@ namespace Interaction.Signal
         public EditorInterfaceType EditorInterfaceType { get; private set; }
 
 
-        //Event
-        public event Action<Chip> OnDeleteChip;
+
         public event Action<Vector3, EditorInterfaceType> OnDragging;
         [CanBeNull] public event Action OnDeleteInteraction;
 
@@ -69,12 +68,12 @@ namespace Interaction.Signal
 
         private void Start()
         {
-            ScalingManager.i.OnScaleChange += UpdateCenterPosition;
+            ScalingManager.i.OnScaleChange += UpdateScale;
         }
 
         private void OnDestroy()
         {
-            ScalingManager.i.OnScaleChange -= UpdateCenterPosition;
+            ScalingManager.i.OnScaleChange -= UpdateScale;
         }
 
         public void Init(Pin.WireType wireType, int _groupID, float _boundsBottom, float _boundsTop,
@@ -98,18 +97,16 @@ namespace Interaction.Signal
             GroupSize = WireType != Pin.WireType.Simple ? 1 : _groupSize;
 
 
-            Signals = new SignalReferenceHolderList(GroupSize);
+            Signals = new SignalReferenceHolderList(GroupSize ,_onDeleteChip );
             for (var i = 0; i < GroupSize; i++)
                 SpawnSignal(WireType, DisplayEnabled);
 
             if (IsGroup && DisplayEnabled)
                 DecimalDisplay.gameObject.SetActive(true);
 
+            SetGroupCenter(GroupCenter.y);
 
-            UpdateCenterPosition();
             SetPinInteractable(true);
-
-            OnDeleteChip += _onDeleteChip;
 
             MenuManager.instance.signalPropertiesMenu.RegisterSignalGroup(this);
             OnFocusLost += MenuManager.instance.CloseMenu;
@@ -124,8 +121,7 @@ namespace Interaction.Signal
             var spawnedSignal = Instantiate(signalPrefab, PinContainers, Quaternion.identity, transform);
 
             spawnedSignal.GroupId = GroupID;
-            spawnedSignal.isInGroup = IsGroup;
-            
+
             var signalReferenceHolder = Signals.AddSignals(spawnedSignal);
             signalReferenceHolder.ChipSignal.wireType = wireType;
             RegisterHandler(signalReferenceHolder.HandleEvent);
@@ -195,16 +191,16 @@ namespace Interaction.Signal
 
             if (DragCancelled) handleNewY = DragStartY - centerDragStartDistance;
 
-            MoveCenterYPosition(handleNewY);
+            SetGroupCenter(handleNewY);
             NotifyMovement();
             // Cancel drag and deselect
             if (DragCancelled) ReleaseFocus();
         }
 
 
-        private void UpdateCenterPosition()
+        private void UpdateScale()
         {
-            MoveCenterYPosition(GroupCenter.y);
+            SetGroupCenter(GroupCenter.y);
         }
 
         private float GetYForGroupMember(float DesideredCeterY, int index)
@@ -236,7 +232,7 @@ namespace Interaction.Signal
                 BoundsTop - HandleSizeY / 2f);
         }
 
-        public void MoveCenterYPosition(float NewYcenter)
+        public void SetGroupCenter(float NewYcenter)
         {
             for (var i = 0; i < Signals.Count; i++)
                 Signals[i].ChipSignal.transform.SetYPos(GetYForGroupMember(NewYcenter, i));
@@ -324,12 +320,15 @@ namespace Interaction.Signal
                 case > 0:
                     for (var i = 0; i < grupSizeDif; i++)
                         list.Add(AddSignal());
-
                     break;
+                default:
+                    return list;
             }
 
-            MoveCenterYPosition(GroupCenter.y);
+            SetGroupCenter(GroupCenter.y);
             OnGroupSizeChange?.Invoke();
+
+            NotifyMovement();
 
             return list;
         }
@@ -359,12 +358,7 @@ namespace Interaction.Signal
         public override void DeleteCommand()
         {
             if (!DeleteAllowed) return;
-            foreach (var selectedSignal in Signals.ChipSignals)
-            {
-                OnDeleteChip?.Invoke(selectedSignal);
-                Destroy(selectedSignal.gameObject);
-            }
-
+            Signals.ClearSignal();
             OnDeleteInteraction?.Invoke();
             Destroy(gameObject);
         }
@@ -399,6 +393,5 @@ namespace Interaction.Signal
             Gizmos.DrawLine(center, dragStart);
         }
 
-       
     }
 }
