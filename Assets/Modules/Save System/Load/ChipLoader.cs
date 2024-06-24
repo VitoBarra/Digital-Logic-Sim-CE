@@ -125,14 +125,14 @@ public static class ChipLoader
         {
             SavedComponentChip savedComponentToLoad = chipToLoad.savedComponentChips[i];
             string componentName = savedComponentToLoad.chipName;
-            Vector2 pos = new Vector2(savedComponentToLoad.posX, savedComponentToLoad.posY);
+
 
             if (!loadedChips.ContainsKey(componentName))
                 DLSLogger.LogError(
                     $"Failed to load sub component: {componentName} While loading {chipToLoad.Info.name}");
 
 
-            Chip instanceComponent = chipEditor.LoadInstanceData(loadedChips[componentName], pos, Quaternion.identity);
+            Chip instanceComponent = chipEditor.LoadInstanceData(loadedChips[componentName],savedComponentToLoad);
             instanceComponent.gameObject.SetActive(true);
 
             // Load input pin names

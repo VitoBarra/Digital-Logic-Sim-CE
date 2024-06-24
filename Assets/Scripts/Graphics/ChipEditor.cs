@@ -49,17 +49,28 @@ public class ChipEditor : MonoBehaviour
         CycleDetector.MarkAllCycles(this);
     }
 
-    public Chip LoadInstanceData(Chip chipData, Vector3 pos, Quaternion rot)
+    public Chip LoadInstanceData(Chip chipData, SavedComponentChip subComponentDescriptor)
     {
+        Vector2 pos = new Vector2(subComponentDescriptor.posX, subComponentDescriptor.posY);
         // Load component chips
         switch (chipData)
         {
-            case InputSignal input:
-                input.wireType = input.outputPins[0].wireType;
-                return inputsEditor.LoadSignal(input, pos.y, input.GroupId);
-            case OutputSignal output:
-                output.wireType = output.inputPins[0].wireType;
-                return outputsEditor.LoadSignal(output, pos.y, output.GroupId);
+            case ChipSignal signal:
+            {
+                Palette.VoltageColour theme = ThemeManager.instance.GetTheme(subComponentDescriptor.ThemeName);
+                switch (signal)
+                {
+                    case InputSignal input:
+                        input.wireType = input.outputPins[0].wireType;
+                        return inputsEditor.LoadSignal(input, pos.y, input.GroupId,theme);
+                    case OutputSignal output:
+                        output.wireType = output.inputPins[0].wireType;
+                        return outputsEditor.LoadSignal(output, pos.y, output.GroupId,theme);
+                    default:
+                        return null;
+                }
+                break;
+            }
             default:
                 return chipInteraction.LoadChip(chipData, pos);
         }

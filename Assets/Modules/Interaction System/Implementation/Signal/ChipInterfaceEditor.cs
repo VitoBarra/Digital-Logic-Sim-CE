@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Interaction.Signal;
+using Interaction.Signal.Display;
 using UnityEngine;
 
 // Allows player to add/remove/move/rename inputs or outputs of a chip.
@@ -98,13 +99,19 @@ public class ChipInterfaceEditor : MonoBehaviour
         DesiredGroupSize = x;
     }
 
-    public ChipSignal LoadSignal(ChipSignal signal, float y, int groupID)
+    public ChipSignal LoadSignal(ChipSignal signal, float y, int groupID,Palette.VoltageColour theme)
     {
         var signalInteraction = SignalsByID.GetValueOrDefault(groupID);
-        if (signalInteraction is not null) return signalInteraction.AddOneSignal().ChipSignal;
+        ChipSignal chipSignal;
 
-        ChipSignal chip = CreateSignalInteractionGroup(y, 1, signal.wireType, false).Signals.ChipSignals[0];
-        return chip;
+        if (signalInteraction is not null)
+            chipSignal = signalInteraction.AddOneSignal().ChipSignal;
+        else
+            chipSignal = CreateSignalInteractionGroup(y, 1, signal.wireType, false).Signals.ChipSignals[0];
+
+
+        chipSignal.GetComponentInChildren<SignalDisplay>().CurrentTheme = theme;
+        return chipSignal;
     }
 
 

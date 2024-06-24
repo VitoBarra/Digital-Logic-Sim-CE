@@ -1,5 +1,6 @@
 ﻿using System;
 using Interaction.Signal;
+using Interaction.Signal.Display;
 using UnityEngine;
 
 namespace Interaction.Signal
@@ -33,13 +34,15 @@ namespace Interaction.Signal
 
   
 
-        public (int id,SignalInteraction obj) Build(float  yPos, int desiredGroupSize,Pin.WireType wireType = Pin.WireType.Simple,bool RequiredFocus= true, bool DisplayEnabled = true)
+        public (int id,SignalInteraction obj) Build(float  yPos, int desiredGroupSize,Pin.WireType wireType = Pin.WireType.Simple
+            ,bool requiredFocus= true, bool displayEnabled = true)
         {
             var ContaierPosition = new Vector3(xContainer, yPos, zContainer);
             var SignalInteractable = GameObject.Instantiate(SignalInteractablePref,SignalHolder);
             SignalInteractable.transform.SetPositionAndRotation(ContaierPosition, SignalInteractable.transform.rotation);
-            SignalInteractable.Init(wireType, NextGroupID ,BoundsBottom,BoundsTop,editorInterfaceType,ContaierPosition,DisplayEnabled);
-            SignalInteractable.SetUpCreation(OnDeleteChip, desiredGroupSize, RequiredFocus);
+            SignalInteractable.Init(wireType, NextGroupID ,BoundsBottom,BoundsTop,editorInterfaceType,ContaierPosition,displayEnabled);
+            SignalInteractable.SetUpCreation(OnDeleteChip, desiredGroupSize, requiredFocus);
+
 
             NextGroupID++;
             return (NextGroupID-1,SignalInteractable);
