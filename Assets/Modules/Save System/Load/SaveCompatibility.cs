@@ -115,7 +115,7 @@ public class SaveCompatibility : MonoBehaviour
         {
             CompDel(ref JChipSave);
         }
-        catch (Exception e)
+        catch
         {
             Error = true;
             DLSLogger.LogError($" failed to ensure compatibility of {CurrentChipName}", $"{vfrom} to {Vto} ");

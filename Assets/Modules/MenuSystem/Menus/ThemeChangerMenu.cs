@@ -7,7 +7,7 @@ public class ThemeChangerMenu : MonoBehaviour
 {
     private RectTransform ThemeChangerMenuUI;
     private IThemeSettable ItemToSet;
-    private bool Inizialized = false;
+
 
     private void Awake()
     {
@@ -20,14 +20,12 @@ public class ThemeChangerMenu : MonoBehaviour
         ItemToSet = itemToSet;
         SetPosition(itemToSet);
         MenuManager.instance.OpenMenu(MenuType.ThemeChangerMenu);
-        Inizialized = true;
     }
 
     public void ChangeTheme(Palette.VoltageColour theme)
     {
         ItemToSet.CurrentTheme = theme;
         MenuManager.instance.CloseMenu();
-        Inizialized = false;
         ItemToSet = null;
     }
 

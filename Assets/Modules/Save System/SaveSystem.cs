@@ -119,12 +119,12 @@ public static partial class SaveSystem
 
     public static SavedProjectSettings LoadProjectSettings()
     {
-        return Modules.ProjectSettings.ProjectSettings.LoadProjectSettings(ProjectSettingsPath);
+        return ProjectSettings.LoadProjectSettings(ProjectSettingsPath);
     }
 
     public static void SaveProjectSettings(Dictionary<int, string> folders)
     {
-        Modules.ProjectSettings.ProjectSettings.SaveProjectSettings(folders);
+        ProjectSettings.SaveProjectSettings(folders);
     }
 
 
@@ -168,7 +168,6 @@ public static partial class SaveSystem
         return savedProjectPaths;
     }
 
-    //TODO: check this on old Installation
     public static void MigrateSaves()
     {
         //old appdata path is at ../../Sebastian Lague/Digital Logic Sim
@@ -180,6 +179,12 @@ public static partial class SaveSystem
         if (!Directory.Exists(oldAppDataPath)) return;
 
         string oldSaveDataPath = Path.Combine(oldAppDataPath, "SaveData");
+        if (!Directory.Exists(oldSaveDataPath))
+        {
+            DLSLogger.LogWarning("Failed migrating OldSave, the folder saveData was not found.");
+            return;
+        }
+
         string[] savedProjectPaths = Directory.GetDirectories(oldSaveDataPath);
         foreach (string path in savedProjectPaths)
         {

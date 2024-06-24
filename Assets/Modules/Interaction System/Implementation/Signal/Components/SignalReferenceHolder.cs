@@ -25,14 +25,13 @@ namespace Interaction.Signal
 
     public class SignalReferenceHolderList : List<SignalReferenceHolder>
     {
-        private bool ValidCache = false;
 
         public readonly List<ChipSignal> ChipSignals;
         private Action<Chip> OnDeleteSignal;
 
-        public SignalReferenceHolderList(int groupSize, Action<Chip> onDeleteSignal) : base(groupSize)
+        public SignalReferenceHolderList(Action<Chip> onDeleteSignal) : base()
         {
-            ChipSignals = new List<ChipSignal>(groupSize);
+            ChipSignals = new List<ChipSignal>();
             OnDeleteSignal = onDeleteSignal;
         }
 

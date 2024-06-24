@@ -27,7 +27,8 @@ public class MenuManager : MonoBehaviour
 {
     public static MenuManager instance;
 
-    [Header("References")] public GameObject createButton;
+    [Header("References")]
+    public GameObject createButton;
     public GameObject updateButton;
     public GameObject outsideMenuArea;
     public TMP_Text ChipName;

@@ -70,7 +70,6 @@ public class ChipEditor : MonoBehaviour
                     default:
                         return null;
                 }
-                break;
             }
             default:
                 return chipInteraction.LoadChip(chipData, pos);

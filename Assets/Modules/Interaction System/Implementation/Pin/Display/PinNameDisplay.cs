@@ -16,7 +16,6 @@ public class PinNameDisplay : MonoBehaviour
     private PinEvent PinEvent;
     private SignalInteraction Interaction;
 
-    bool over = false;
     private bool IsInteraction = false;
 
     private bool ShouldBeDisplayed => Mode == PinNameDisplayMode.AlwaysAll ||

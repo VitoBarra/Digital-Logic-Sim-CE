@@ -48,15 +48,15 @@ public class WireDisplay : ThemeDisplay
 
     private void RegisterEvent()
     {
-        var wireEvent = GetComponentInParent<WireEvent>();
-        var wire = wireEvent.MouseInteraction.Context;
+        var wireEventMouse = GetComponentInParent<WireEvent>();
+        var wire = wireEventMouse.wire;
 
-        wireEvent.MouseInteraction.MouseEntered += (_) =>
+        wireEventMouse.OnWireEnter += () =>
         {
             wire.RequestFocus();
             SelectAppearance();
         };
-        wireEvent.MouseInteraction.MouseExitted += (_) =>
+        wireEventMouse.OnWireExit += () =>
         {
             wire.ReleaseFocus();
             NormalAppearance();

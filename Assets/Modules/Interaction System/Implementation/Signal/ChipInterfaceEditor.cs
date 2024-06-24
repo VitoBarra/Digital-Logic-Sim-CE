@@ -90,7 +90,7 @@ public class ChipInterfaceEditor : MonoBehaviour
     {
         CreateGroup.i.onGroupSizeSettingPressed -= OnGroupSizeSettingPressed;
         ScalingManager.i.OnScaleChange -= UpdateScale;
-        PreviewSignal.UnregisterEvent();
+        PreviewSignal?.UnregisterEvent();
     }
 
 
