@@ -62,10 +62,10 @@ public class ChipEditor : MonoBehaviour
                 switch (signal)
                 {
                     case InputSignal input:
-                        input.wireType = input.outputPins[0].wireType;
+                        input.wireType = subComponentDescriptor.outputPins[0].wireType;
                         return inputsEditor.LoadSignal(input, pos.y,theme);
                     case OutputSignal output:
-                        output.wireType = output.inputPins[0].wireType;
+                        output.wireType = subComponentDescriptor.inputPins[0].wireType;
                         return outputsEditor.LoadSignal(output, pos.y,theme);
                     default:
                         return null;
@@ -83,7 +83,6 @@ public class ChipEditor : MonoBehaviour
 
     public void SetSignalCenter(Dictionary<int, float> signalGroupCenter)
     {
-
         inputsEditor.SetSignalCenter(signalGroupCenter);
         outputsEditor.SetSignalCenter(signalGroupCenter);
     }

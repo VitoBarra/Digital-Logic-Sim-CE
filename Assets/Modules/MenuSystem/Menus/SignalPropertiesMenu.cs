@@ -117,7 +117,7 @@ public class SignalPropertiesMenu : MonoBehaviour
     }
 
 
-    public void SetUpUI(SignalInteraction signalInteraction)
+    public void SetUpSignalPropertyUI(SignalInteraction signalInteraction)
     {
         propertiesUI.gameObject.SetActive(true);
         SignalInteraction = signalInteraction;
@@ -233,6 +233,7 @@ public class SignalPropertiesMenu : MonoBehaviour
 
     private void UnregisterSignalGroup(SignalInteraction signalInteraction)
     {
+        if(signalInteraction is null) return;
         signalInteraction.OnDragging -= SetPosition;
         signalInteraction.OnDeleteInteraction -= DeleteFinalizer;
     }

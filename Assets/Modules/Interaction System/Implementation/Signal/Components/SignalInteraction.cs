@@ -94,8 +94,6 @@ namespace Interaction.Signal
 
 
             MenuManager.instance.signalPropertiesMenu.RegisterSignalGroup(this);
-            OnFocusLost += MenuManager.instance.CloseMenu;
-            OnFocusObtained += () => MenuManager.instance.signalPropertiesMenu.SetUpUI(this);
             OnGroupSizeChange += OnGroupSizeChangeHandle;
 
             SetGroupSize(WireType != Pin.WireType.Simple ? 1 : _groupSize);
@@ -126,7 +124,7 @@ namespace Interaction.Signal
 
             var signalReferenceHolder = Signals.AddSignals(spawnedSignal);
             signalReferenceHolder.ChipSignal.wireType = wireType;
-            RegisterHandler(signalReferenceHolder.HandleEvent);
+            RegisterHandler(signalReferenceHolder.HandlerEvent);
 
             spawnedSignal.OnStateChange += (_, _) => StateChangeHandle();
             return signalReferenceHolder;
@@ -146,23 +144,25 @@ namespace Interaction.Signal
         }
 
 
-        private void RegisterHandler(HandleEvent HandleEvent)
+        private void RegisterHandler(HandlerEvent handlerEvent)
         {
-            HandleEvent.OnHandleClick += () =>
+            handlerEvent.OnHandleLeftDown += () =>
             {
                 NotifyMovement();
                 RequestFocus();
             };
 
-            HandleEvent.OnStartDrag += (pos) =>
+            handlerEvent.OnHandleRightClick += ()=> MenuManager.instance.signalPropertiesMenu.SetUpSignalPropertyUI(this);;
+
+            handlerEvent.OnStartDrag += (pos) =>
             {
                 DragStartY = pos.y;
                 centerDragStartDistance = DragStartY - GroupCenter.y;
                 DragCancelled = false;
             };
 
-            HandleEvent.OnDrag += Drag;
-            HandleEvent.OnStopDrag += () => DragStartY = 0;
+            handlerEvent.OnDrag += Drag;
+            handlerEvent.OnStopDrag += () => DragStartY = 0;
         }
 
 
@@ -278,9 +278,7 @@ namespace Interaction.Signal
             }
         }
 
-        void OpenPropertyMenu()
-        {
-        }
+
 
 
         public void UpdateGroupProperty(string NewName, bool twosComplementToggle)

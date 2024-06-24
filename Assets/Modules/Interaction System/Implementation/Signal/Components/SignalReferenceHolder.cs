@@ -9,16 +9,16 @@ namespace Interaction.Signal
     public class SignalReferenceHolder
     {
         public ChipSignal ChipSignal;
-        public HandleEvent HandleEvent;
+        public HandlerEvent HandlerEvent;
         public SignalHandlerDisplay HandleDisplay;
 
         public SignalReferenceHolder(ChipSignal signal)
         {
             ChipSignal = signal;
-            HandleEvent = ChipSignal.GetComponentInChildren<HandleEvent>(true);
+            HandlerEvent = ChipSignal.GetComponentInChildren<HandlerEvent>(true);
             HandleDisplay = ChipSignal.GetComponentInChildren<SignalHandlerDisplay>(true);
             
-            HandleDisplay.RegisterToHandleGroup(HandleEvent);
+            HandleDisplay.RegisterToHandleGroup(HandlerEvent);
         }
     }
 
@@ -42,10 +42,10 @@ namespace Interaction.Signal
 
             foreach (var display in this.Select(x => x.HandleDisplay))
             {
-                display.RegisterToHandleGroup(SRH.HandleEvent);
+                display.RegisterToHandleGroup(SRH.HandlerEvent);
             }
 
-            foreach (var handler in this.Select(x => x.HandleEvent))
+            foreach (var handler in this.Select(x => x.HandlerEvent))
             {
                 SRH.HandleDisplay.RegisterToHandleGroup(handler);
             }
@@ -61,10 +61,10 @@ namespace Interaction.Signal
             var signalReferenceHolder = this[index];
             foreach (var display in this.Select(x => x.HandleDisplay))
             {
-                display.UnregisterToHandleGroup(signalReferenceHolder.HandleEvent);
+                display.UnregisterToHandleGroup(signalReferenceHolder.HandlerEvent);
             }
 
-            foreach (var handler in this.Select(x => x.HandleEvent))
+            foreach (var handler in this.Select(x => x.HandlerEvent))
             {
                 signalReferenceHolder.HandleDisplay.UnregisterToHandleGroup(handler);
             }
