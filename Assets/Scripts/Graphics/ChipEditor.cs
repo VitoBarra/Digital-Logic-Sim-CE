@@ -58,14 +58,18 @@ public class ChipEditor : MonoBehaviour
             case ChipSignal signal:
             {
                 Palette.VoltageColour theme = ThemeManager.instance.GetTheme(subComponentDescriptor.ThemeName);
+                signal.GroupId = subComponentDescriptor.signalGroupId;
+                signal.isInGroup = subComponentDescriptor.isInGroup;
                 switch (signal)
                 {
+
+
                     case InputSignal input:
                         input.wireType = input.outputPins[0].wireType;
-                        return inputsEditor.LoadSignal(input, pos.y, input.GroupId,theme);
+                        return inputsEditor.LoadSignal(input, pos.y,theme);
                     case OutputSignal output:
                         output.wireType = output.inputPins[0].wireType;
-                        return outputsEditor.LoadSignal(output, pos.y, output.GroupId,theme);
+                        return outputsEditor.LoadSignal(output, pos.y,theme);
                     default:
                         return null;
                 }

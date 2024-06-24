@@ -126,16 +126,16 @@ namespace Interaction.Signal
             spawnedSignal.GroupId = GroupID;
             spawnedSignal.isInGroup = IsGroup;
             
-            var e = Signals.AddSignals(spawnedSignal);
-            e.ChipSignal.wireType = wireType;
-            RegisterHandler(e.HandleEvent);
+            var signalReferenceHolder = Signals.AddSignals(spawnedSignal);
+            signalReferenceHolder.ChipSignal.wireType = wireType;
+            RegisterHandler(signalReferenceHolder.HandleEvent);
 
-            if (!IsGroup || !DisplayEnabled) return e;
+            if (!IsGroup || !DisplayEnabled) return signalReferenceHolder;
 
             spawnedSignal.OnStateChange += (_, _) =>
                 DecimalDisplay.UpdateDecimalDisplay(Signals.ChipSignals, UseTwosComplement);
 
-            return e;
+            return signalReferenceHolder;
         }
 
         private SignalReferenceHolder AddSignal()

@@ -99,9 +99,9 @@ public class ChipInterfaceEditor : MonoBehaviour
         DesiredGroupSize = x;
     }
 
-    public ChipSignal LoadSignal(ChipSignal signal, float y, int groupID,Palette.VoltageColour theme)
+    public ChipSignal LoadSignal(ChipSignal signal, float y, Palette.VoltageColour theme)
     {
-        var signalInteraction = SignalsByID.GetValueOrDefault(groupID);
+        var signalInteraction = SignalsByID.GetValueOrDefault(signal.GroupId);
         ChipSignal chipSignal;
 
         if (signalInteraction is not null)
