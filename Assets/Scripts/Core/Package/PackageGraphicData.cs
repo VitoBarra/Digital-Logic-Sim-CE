@@ -13,5 +13,7 @@ namespace Core
         public bool OverrideWidthAndHeight = false;
         public float Width = 1f;
         public float Height = 1f;
+        public float WidthPadding = 0.1f;
+        public float HeightPadding = 0f;
     }
 }

@@ -3,12 +3,13 @@ using System.Linq;
 using System.Net.NetworkInformation;
 using UnityEngine;
 
+// This class is not static to allow values to be changed in the inspector
 public class ScalingManager : MonoBehaviour
 {
     public static ScalingManager i;
 
     public event Action OnScaleChange;
-    public float scale = 1f;
+    private float scale = 1f;
     public static float Scale => i.scale;
 
     [Header("handler")] const float maxhandleSizeY = 0.4f;

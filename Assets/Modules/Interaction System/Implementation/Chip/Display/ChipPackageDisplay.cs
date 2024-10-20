@@ -8,37 +8,34 @@ public class ChipPackageDisplay : MonoBehaviour
 {
     public TMPro.TextMeshPro nameText;
     public Transform container;
-    private SpawnableChip SpawnableChip;
+    private SpawnableChip Chip;
+    private MeshRenderer MeshRenderer;
+    public List<Transform> PalteObjects;
 
 
     void Awake()
     {
-        ScalingManager.i.OnScaleChange += SetSizeAndSpacing;
+        ScalingManager.i.OnScaleChange += RescaleChipPackage;
         Init();
     }
 
     private void OnDestroy()
     {
-        ScalingManager.i.OnScaleChange -= SetSizeAndSpacing;
+        ScalingManager.i.OnScaleChange -= RescaleChipPackage;
     }
 
     public void Init()
     {
-        SpawnableChip = GetComponent<SpawnableChip>();
-        SetUpDisplay();
+        Chip = GetComponent<SpawnableChip>();
+        MeshRenderer = container.GetComponent<MeshRenderer>();
+        DrawPackageChip();
+        SetColour(Chip.PackageGraphicData.PackageColour);
     }
 
-    private void SetUpDisplay()
+    private void SetColour(Color dataColour)
     {
-        if (SpawnableChip == null) return;
-
-        SetSizeAndSpacing();
-        SetDisplay(SpawnableChip.PackageGraphicData);
-    }
-
-    private void Start()
-    {
-        nameText.fontSize = ScalingManager.PackageFontSize;
+        if (MeshRenderer is null) return;
+        MeshRenderer.material.color = dataColour;
     }
 
     public void SetUpForCustomPackageChip(ChipInfo info)
@@ -49,99 +46,102 @@ public class ChipPackageDisplay : MonoBehaviour
         SetColour(info.PackColor);
     }
 
-    private void SetColour(Color dataColour)
+
+    private void RescaleChipPackage()
     {
-        container.GetComponent<MeshRenderer>().material.color = dataColour;
+        DrawPackageChip();
     }
 
 
-    private void SetSizeAndSpacing()
+    private void DrawPackageChip()
     {
-        if (SpawnableChip == null) return;
+        if (Chip == null) return;
+        nameText.fontSize = ScalingManager.PackageFontSize;
 
-        SpawnableChip chip = SpawnableChip;
-        var data = chip.PackageGraphicData;
+        var graphicalData = Chip.PackageGraphicData;
 
         float PinRadius = PinDisplay.radius * 0.25f;
         float PinInteraction = PinRadius * PinDisplay.IteractionFactor;
-
-        nameText.fontSize = ScalingManager.PackageFontSize;
-
-
-        float containerHeightPadding = 0;
-        float containerWidthPadding = 0.1f;
         float pinSpacePadding = PinRadius * 0.2f;
-        float containerWidth = nameText.preferredWidth + PinInteraction * 2f + containerWidthPadding;
 
-        int numPins = Mathf.Max(chip.inputPins.Count, chip.outputPins.Count);
-        float unpaddedContainerHeight = numPins * (PinRadius * 2 + pinSpacePadding);
-        float containerHeight = Mathf.Max(unpaddedContainerHeight, nameText.preferredHeight + 0.05f) +
-                                containerHeightPadding;
-        float topPinY = unpaddedContainerHeight / 2 - PinRadius;
-        float bottomPinY = -unpaddedContainerHeight / 2 + PinRadius;
+        int numPins = Mathf.Max(Chip.inputPins.Count, Chip.outputPins.Count);
+
+        float containerWidth = 0;
+        float containerHeight = 0;
+
+        if (graphicalData.OverrideWidthAndHeight)
+        {
+            containerWidth = graphicalData.Width;
+            containerHeight = graphicalData.Height;
+        }
+        else
+        {
+            containerWidth = nameText.preferredWidth + PinInteraction * 2f;
+            containerHeight = Mathf.Max(numPins * (PinRadius * 2 + pinSpacePadding), nameText.preferredHeight + 0.05f) ;
+        }
+
+        float topPinY = containerHeight / 2 - PinRadius;
+        float bottomPinY = -containerHeight / 2 + PinRadius;
         const float z = -0.05f;
 
+        //Applay padding
+        containerWidth += graphicalData.WidthPadding*Mathf.Lerp(0.2f,1,ScalingManager.Scale) ;
+        containerHeight += graphicalData.HeightPadding*Mathf.Lerp(0.2f,1,ScalingManager.Scale);
+
+
         // Input pins
-        int numInputPinsToAutoPlace = chip.inputPins.Count;
+        int numInputPinsToAutoPlace = Chip.inputPins.Count;
         for (int i = 0; i < numInputPinsToAutoPlace; i++)
         {
             float percent = 0.5f;
-            if (chip.inputPins.Count > 1)
+            if (Chip.inputPins.Count > 1)
             {
                 percent = i / (numInputPinsToAutoPlace - 1f);
             }
 
-            if (data.OverrideWidthAndHeight)
-            {
-                float posX = -data.Width / 2f;
-                float posY = Mathf.Lerp(topPinY, bottomPinY, percent);
-                chip.inputPins[i].transform.localPosition = new Vector3(posX, posY, z);
-            }
-            else
-            {
-                float posX = -containerWidth / 2f;
-                float posY = Mathf.Lerp(topPinY, bottomPinY, percent);
-                chip.inputPins[i].transform.localPosition = new Vector3(posX, posY, z);
-            }
+
+            float posX = -containerWidth / 2f;
+            float posY = Mathf.Lerp(topPinY, bottomPinY, percent);
+            Chip.inputPins[i].transform.localPosition = new Vector3(posX, posY, z);
+
         }
 
         // Output pins
-        for (int i = 0; i < chip.outputPins.Count; i++)
+        for (int i = 0; i < Chip.outputPins.Count; i++)
         {
             float percent = 0.5f;
-            if (chip.outputPins.Count > 1)
+            if (Chip.outputPins.Count > 1)
             {
-                percent = i / (chip.outputPins.Count - 1f);
+                percent = i / (Chip.outputPins.Count - 1f);
             }
 
             float posX = containerWidth / 2f;
             float posY = Mathf.Lerp(topPinY, bottomPinY, percent);
-            chip.outputPins[i].transform.localPosition = new Vector3(posX, posY, z);
+            Chip.outputPins[i].transform.localPosition = new Vector3(posX, posY, z);
         }
 
         // Set container size
-        if (data.OverrideWidthAndHeight)
-        {
-            container.transform.localScale =
-                new Vector3(data.Width, data.Height, 1);
-            GetComponent<BoxCollider2D>().size =
-                new Vector2(data.Width, data.Height);
-        }
-        else
-        {
-            container.transform.localScale = new Vector3(containerWidth, containerHeight, 1);
-            GetComponent<BoxCollider2D>().size = new Vector2(containerWidth, containerHeight);
-        }
+        container.localScale = new Vector3(containerWidth, containerHeight, 1);
+        GetComponent<BoxCollider2D>().size = new Vector2(containerWidth, containerHeight);
+
+
+
+        // Scale Plate Objects
+        if ( PalteObjects is null || PalteObjects.Count == 0) return;
+
+        foreach (var obj in PalteObjects)
+            obj.localScale = new Vector3(containerWidth- (containerWidth / 100 * 15), containerHeight-(containerHeight / 100 * 15), 1);
+
+
+
     }
 
     private void OnValidate()
     {
-        SetSizeAndSpacing();
+        if (ScalingManager.i is null) return;
+        RescaleChipPackage();
     }
 
 
-    void SetDisplay(PackageGraphicData data)
-    {
-        SetColour(data.PackageColour);
-    }
+
 }

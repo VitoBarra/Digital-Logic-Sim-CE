@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics.Tracing;
 using Interaction.Signal;
 using TMPro;
@@ -43,6 +44,8 @@ public class PinNameDisplay : MonoBehaviour
     }
 
 
+
+
     private void MouseExitHandler(Pin obj)
     {
         if (!ShouldBeDisplayed)
@@ -58,7 +61,6 @@ public class PinNameDisplay : MonoBehaviour
             HideDisplay();
     }
 
-    //cambiare il metodo d accesso
     private void Start()
     {
         UpdateScale();
@@ -90,8 +92,9 @@ public class PinNameDisplay : MonoBehaviour
                 EnableDisplay();
                 break;
             default:
-                throw new ArgumentOutOfRangeException();
+                throw new InvalidEnumArgumentException();
         }
+        UpdateScale();
     }
 
 

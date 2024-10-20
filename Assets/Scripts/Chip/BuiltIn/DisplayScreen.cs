@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Core;
+using DLS.Core.Simulation;
 using UnityEngine;
 using Color = UnityEngine.Color;
 using Debug = UnityEngine.Debug;
@@ -12,7 +13,7 @@ public class DisplayScreen : BuiltinChip
 {
     public Renderer textureRender;
     public const int SIZE = 8;
-    private string editCoords;
+    private int editCoords;
     Texture2D texture;
     int[] texCoords;
     
@@ -43,7 +44,7 @@ public class DisplayScreen : BuiltinChip
     }
 
     public int[] map2d(int index, int size) {
-        int[] coords = new int[2];
+        var coords = new int[2];
         coords[0] = index % size;
         coords[1] = index / size;
         return coords;
@@ -60,12 +61,20 @@ public class DisplayScreen : BuiltinChip
 
     //update display here
     public override void ProcessOutput() {
-        editCoords = "";
-        for(int i = 6; i < 12; i++) {
-            editCoords += inputPins[i].State.ToString();
-        }
-        texCoords = map2d(Convert.ToInt32(editCoords, 2), SIZE);
-        texture.SetPixel(texCoords[0], texCoords[1], new UnityEngine.Color(Convert.ToInt32(inputPins[0].State.ToString() + inputPins[1].State.ToString(), 2) / 2f, Convert.ToInt32(inputPins[2].State.ToString() + inputPins[3].State.ToString(), 2) / 2f, Convert.ToInt32(inputPins[4].State.ToString() + inputPins[5].State.ToString(), 2)) / 2f);
+
+        PinStates AdressPins = new PinStates(Pin.WireType.Simple);
+        for(int i = 11; i>5 ; i--)
+            AdressPins.Add(inputPins[i].State[0]);;
+
+        var cord =(int) AdressPins.ToUInt();
+
+        texCoords = map2d(cord, SIZE);
+        var redChannel = (inputPins[0].State.ToUInt() + inputPins[1].State.ToUInt())/ 2f;
+        var greenChannel = (inputPins[2].State.ToUInt() + inputPins[3].State.ToUInt()) / 2f;
+        var blueChannel = (inputPins[4].State.ToUInt() + inputPins[5].State.ToUInt()) / 2f;
+        texture.SetPixel(texCoords[0], texCoords[1], new Color(redChannel , greenChannel, blueChannel));
         texture.Apply();
     }
+
+
 }

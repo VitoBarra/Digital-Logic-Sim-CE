@@ -33,10 +33,12 @@ namespace DLS.Core.Simulation
         }
 
 
-        private void Add(bool b)
+        //
+        private void Add(bool pinState)
         {
-            Add(b ? PinState.HIGH : PinState.LOW);
+            Add(pinState? PinState.HIGH : PinState.LOW);
         }
+
 
         public static PinStates AllLow(Pin.WireType wiretype = Pin.WireType.Bus32)
         {
@@ -60,15 +62,20 @@ namespace DLS.Core.Simulation
 
         public uint ToUInt()
         {
+            BitArray bytearr = this.ToBitArray();
+            byte[] bytes = new byte[4];
+            bytearr.CopyTo(bytes, 0);
+            return BitConverter.ToUInt32(bytes, 0);
+        }
+        public BitArray ToBitArray()
+        {
             BitArray bytearr = new BitArray(Capacity);
             for (var i = 0; i < Count; i++)
             {
                 bytearr[i] = this[i].ToBit();
             }
 
-            byte[] bytes = new byte[4];
-            bytearr.CopyTo(bytes, 0);
-            return BitConverter.ToUInt32(bytes, 0);
+            return bytearr;
         }
 
         public static PinStates Zero => new PinStates(PinState.LOW);

@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4370981688201696047}
   - component: {fileID: 8932756024906521167}
   m_Layer: 0
-  m_Name: Input
+  m_Name: Input Signal
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

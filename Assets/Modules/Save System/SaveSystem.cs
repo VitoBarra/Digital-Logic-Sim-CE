@@ -19,8 +19,8 @@ public static partial class SaveSystem
     private static string ProjectSettingsPath =>
         Path.Combine(ActiveProjectPath, ProjectSettingsFileName + FileExtension);
 
-    static string ActiveProjectPath => Path.Combine(SaveDataDirectoryPath, ActiveProjectName);
-    static string ChipPath => Path.Combine(ActiveProjectPath, ChipFolder);
+    private static string ActiveProjectPath => Path.Combine(SaveDataDirectoryPath, ActiveProjectName);
+    private static string ChipPath => Path.Combine(ActiveProjectPath, ChipFolder);
 
     public static string SaveDataDirectoryPath => Path.Combine(Application.persistentDataPath, "SaveData");
 
@@ -231,9 +231,10 @@ public static partial class SaveSystem
     }
     public static void MoveProject(string selectedProjectName, string newProjectName, bool keepOld = false)
     {
-        ActiveProjectName = selectedProjectName;
+        if (string.Equals(selectedProjectName.Trim(), newProjectName.Trim())) return;
 
-        if (Directory.Exists(ActiveProjectPath))
+        ActiveProjectName = selectedProjectName;
+        if (Directory.Exists(ActiveProjectPath) )
         {
             var oldDirectory = ActiveProjectPath;
             ActiveProjectName = newProjectName;
